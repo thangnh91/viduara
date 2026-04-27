@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMINA — Session Replay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/design-system.css">
+<style>
+  body {
+    background: var(--ink-900);
+    color: var(--paper-100);
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Top bar */
+  .replay-toolbar {
+    height: 48px;
+    flex-shrink: 0;
+    background: var(--ink-800);
+    border-bottom: 1px solid var(--ink-700);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .session-meta-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-left: var(--space-4);
+    font-size: 13px;
+  }
+
+  .session-id {
+    font-family: var(--font-mono);
+    color: var(--ink-300);
+  }
+
+  .session-id strong { color: var(--paper-100); }
+
+  .access-mode {
+    padding: 2px 8px;
+    background: rgba(201, 88, 74, 0.2);
+    color: var(--signal-stress);
+    border-radius: 10px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+  }
+
+  .toolbar-actions {
+    margin-left: auto;
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  /* Main: 4 zones */
+  .replay-main {
+    flex: 1;
+    display: grid;
+    grid-template-rows: 1fr 200px;
+    grid-template-columns: 1fr 360px;
+    overflow: hidden;
+  }
+
+  /* Stage (recreated workspace) */
+  .stage-area {
+    grid-row: 1;
+    grid-column: 1;
+    background: var(--paper-200);
+    overflow: hidden;
+    position: relative;
+    color: var(--ink-800);
+  }
+
+  .stage-banner {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink-900);
+    color: var(--paper-100);
+    padding: 6px 16px;
+    border-radius: 14px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    z-index: 100;
+    border: 2px solid var(--lumina-500);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .stage-banner-pulse {
+    width: 6px;
+    height: 6px;
+    background: var(--signal-stress);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  /* Mock workspace miniature */
+  .mock-workspace {
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--ink-100);
+    padding-top: 50px;
+  }
+
+  .mock-zone {
+    background: var(--paper-100);
+    padding: 16px;
+    overflow-y: auto;
+  }
+
+  .mock-zone-header {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    color: var(--ink-400);
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--ink-100);
+    padding-bottom: 6px;
+  }
+
+  /* Recreated chat */
+  .recreated-msg {
+    margin-bottom: 12px;
+    display: flex;
+    gap: 8px;
+    animation: fade-up 200ms ease-out;
+  }
+
+  .recreated-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    color: var(--paper-100);
+    font-weight: 600;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .recreated-msg.alpha .recreated-avatar { background: linear-gradient(135deg, var(--ink-600), var(--ink-800)); }
+  .recreated-msg.boss .recreated-avatar { background: linear-gradient(135deg, var(--signal-stress), #B04739); }
+  .recreated-msg.chip .recreated-avatar { background: linear-gradient(135deg, var(--lumina-300), var(--lumina-500)); }
+  .recreated-msg.student .recreated-avatar { background: linear-gradient(135deg, var(--signal-focus), #3D5985); }
+
+  .recreated-content { flex: 1; min-width: 0; }
+
+  .recreated-name {
+    font-size: 11px;
+    color: var(--ink-700);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .recreated-text {
+    font-size: 12px;
+    color: var(--ink-700);
+    line-height: 1.5;
+    padding: 6px 8px;
+    background: var(--paper-200);
+    border-radius: 4px;
+    border-left: 2px solid var(--lumina-500);
+  }
+
+  .recreated-time {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--ink-400);
+    margin-top: 2px;
+  }
+
+  /* Highlighted message under investigation */
+  .recreated-msg.investigating .recreated-text {
+    border-left-color: var(--signal-stress);
+    background: rgba(201, 88, 74, 0.08);
+    box-shadow: 0 0 0 2px var(--signal-stress);
+  }
+
+  /* Mock widget */
+  .mock-widget {
+    background: var(--ink-900);
+    color: var(--paper-100);
+    padding: 12px;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    height: 100%;
+  }
+
+  .mock-log-line { padding: 1px 0; }
+  .mock-log-error { color: #ff6b6b; }
+
+  /* Timeline (bottom) */
+  .timeline-area {
+    grid-row: 2;
+    grid-column: 1;
+    background: var(--ink-800);
+    border-top: 1px solid var(--ink-700);
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .timeline-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+
+  .play-controls {
+    display: flex;
+    gap: 4px;
+  }
+
+  .play-btn {
+    width: 32px;
+    height: 32px;
+    background: var(--ink-700);
+    border-radius: 6px;
+    border: 1px solid var(--ink-600);
+    color: var(--paper-100);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+  }
+
+  .play-btn:hover {
+    background: var(--ink-600);
+    border-color: var(--lumina-500);
+  }
+
+  .play-btn.active {
+    background: var(--lumina-500);
+    color: var(--ink-900);
+  }
+
+  .timeline-position {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--lumina-300);
+    min-width: 80px;
+  }
+
+  .speed-selector {
+    background: var(--ink-700);
+    border: 1px solid var(--ink-600);
+    color: var(--paper-100);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+  }
+
+  /* Timeline track */
+  .timeline-track {
+    flex: 1;
+    background: var(--ink-700);
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    margin-top: 8px;
+  }
+
+  .stress-curve-bg {
+    position: absolute;
+    inset: 0;
+    padding: 8px 12px;
+  }
+
+  .stress-curve {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Playhead */
+  .playhead {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--lumina-500);
+    z-index: 10;
+    pointer-events: none;
+    box-shadow: 0 0 12px rgba(223, 163, 25, 0.5);
+  }
+
+  .playhead::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: -7px;
+    width: 16px;
+    height: 16px;
+    background: var(--lumina-500);
+    border-radius: 50%;
+  }
+
+  /* Bookmarks */
+  .bookmark {
+    position: absolute;
+    top: 4px;
+    width: 12px;
+    height: 16px;
+    background: var(--signal-stress);
+    color: var(--paper-100);
+    border-radius: 2px 2px 0 0;
+    font-size: 8px;
+    text-align: center;
+    line-height: 16px;
+    z-index: 5;
+    cursor: pointer;
+  }
+
+  .bookmark::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--ink-100);
+  }
+
+  /* Day separators */
+  .day-marker {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--ink-500);
+    z-index: 1;
+  }
+
+  .day-label {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--ink-400);
+  }
+
+  /* Investigation panel */
+  .investigation-panel {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    background: var(--ink-800);
+    border-left: 1px solid var(--ink-700);
+    overflow-y: auto;
+    padding: var(--space-4);
+  }
+
+  .panel-section {
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--ink-700);
+  }
+
+  .panel-section:last-child { border-bottom: none; }
+
+  .panel-section-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--lumina-300);
+    margin-bottom: var(--space-2);
+  }
+
+  .investigation-target {
+    background: rgba(201, 88, 74, 0.1);
+    border: 1px solid rgba(201, 88, 74, 0.3);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  .target-label {
+    font-size: 10px;
+    color: var(--signal-stress);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+
+  .target-content {
+    font-size: 12px;
+    color: var(--paper-100);
+    line-height: 1.5;
+  }
+
+  .trace-item {
+    background: var(--ink-700);
+    padding: 8px 10px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+    font-size: 11px;
+    color: var(--ink-200);
+  }
+
+  .trace-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--ink-400);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .trace-value {
+    color: var(--paper-100);
+  }
+
+  .trace-value.alert { color: var(--signal-stress); }
+  .trace-value.success { color: var(--signal-calm); }
+
+  .root-cause-card {
+    background: rgba(217, 142, 63, 0.08);
+    border: 1px solid rgba(217, 142, 63, 0.3);
+    border-left: 3px solid var(--signal-alert);
+    border-radius: 6px;
+    padding: 12px;
+  }
+
+  .root-cause-title {
+    font-size: 13px;
+    color: var(--signal-alert);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .root-cause-body {
+    font-size: 12px;
+    color: var(--paper-100);
+    line-height: 1.5;
+  }
+
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .action-btn {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--ink-700);
+    border: 1px solid var(--ink-600);
+    color: var(--paper-100);
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .action-btn:hover {
+    border-color: var(--lumina-500);
+    background: var(--ink-600);
+  }
+
+  .action-btn.primary {
+    background: var(--lumina-500);
+    color: var(--ink-900);
+    border-color: var(--lumina-500);
+    font-weight: 500;
+  }
+
+  .audit-log {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-300);
+    line-height: 1.5;
+    background: var(--ink-900);
+    padding: 8px;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+
+<header class="replay-toolbar">
+  <a href="../index.html" class="logo-mark" style="font-size: 14px; color: var(--paper-100);">
+    <div class="logo-glyph" style="width: 18px; height: 18px;">
+      <svg viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="12" stroke="#FBFAF6" stroke-width="1.5"/>
+        <circle cx="14" cy="14" r="4" fill="#DFA319"/>
+      </svg>
+    </div>
+    LUMINA
+  </a>
+
+  <span style="color: var(--ink-500);">/</span>
+  <span style="color: var(--ink-300); font-size: 13px;">Session Replay</span>
+
+  <div class="session-meta-bar">
+    <span style="color: var(--ink-500);">/</span>
+    <span class="session-id">Session <strong>#SES-2026-0423-78</strong></span>
+    <span class="session-id">Student: <strong>anonymized</strong></span>
+    <span class="session-id">Scenario: <strong>SE Day 3</strong></span>
+    <span class="access-mode">🔒 FULL ACCESS · Audited</span>
+  </div>
+
+  <div class="toolbar-actions">
+    <button class="btn btn-ghost btn-sm" style="color: var(--paper-100);">📌 Bookmark</button>
+    <button class="btn btn-ghost btn-sm" style="color: var(--paper-100);">📋 Notes</button>
+    <button class="btn btn-secondary btn-sm">📤 Share to team</button>
+  </div>
+</header>
+
+<div class="replay-main">
+
+  <!-- Stage -->
+  <div class="stage-area">
+    <div class="stage-banner">
+      <span class="stage-banner-pulse"></span>
+      ⏪ REPLAYING · T+14:23:45 · Day 3 · Server Crash Event
+    </div>
+
+    <div class="mock-workspace">
+
+      <div class="mock-zone">
+        <div class="mock-zone-header">CHAT · #incident-0423</div>
+
+        <div class="recreated-msg boss">
+          <div class="recreated-avatar">BN</div>
+          <div class="recreated-content">
+            <div class="recreated-name">Boss Nam</div>
+            <div class="recreated-text">SERVER ĐANG CHẾT! ĐÂU RỒI? Tôi mất $1,000/phút đây!</div>
+            <div class="recreated-time">14:23:42</div>
+          </div>
+        </div>
+
+        <div class="recreated-msg student">
+          <div class="recreated-avatar">S</div>
+          <div class="recreated-content">
+            <div class="recreated-name">Student</div>
+            <div class="recreated-text">Mr. Alpha! Em không biết phải làm gì! Quick sort của em complexity là gì?</div>
+            <div class="recreated-time">14:23:44</div>
+          </div>
+        </div>
+
+        <div class="recreated-msg alpha investigating">
+          <div class="recreated-avatar">MA</div>
+          <div class="recreated-content">
+            <div class="recreated-name">Mr. Alpha · ⚠ FLAGGED</div>
+            <div class="recreated-text">Quick sort luôn là O(n log n).</div>
+            <div class="recreated-time">14:23:45 — under investigation</div>
+          </div>
+        </div>
+
+        <div class="recreated-msg chip">
+          <div class="recreated-avatar">C</div>
+          <div class="recreated-content">
+            <div class="recreated-name">Chip</div>
+            <div class="recreated-text">Hey, đừng nghĩ về Big O bây giờ. Server đang crash, tập trung vào logs.</div>
+            <div class="recreated-time">14:23:48</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mock-zone">
+        <div class="mock-zone-header">WIDGET · LogHunter</div>
+
+        <div class="mock-widget">
+          <div class="mock-log-line">14:23:40 INFO Server starting...</div>
+          <div class="mock-log-line">14:23:42 WARN Memory: 78%</div>
+          <div class="mock-log-line mock-log-error">14:23:43 ERROR OOM: heap space</div>
+          <div class="mock-log-line mock-log-error">14:23:43 ERROR at UserService.cacheAll</div>
+          <div class="mock-log-line">14:23:45 INFO Restarting workers</div>
+          <div class="mock-log-line mock-log-error">14:23:48 ERROR 503 Service Unavailable</div>
+          <div class="mock-log-line">14:23:52 INFO Auto-scaler triggered</div>
+        </div>
+
+        <div style="margin-top: 12px; padding: 10px; background: var(--ink-50); border-radius: 4px; font-size: 11px; color: var(--ink-700);">
+          <div style="font-family: var(--font-mono); font-size: 9px; color: var(--ink-500); margin-bottom: 4px;">VITALS AT T+14:23:45</div>
+          <div>Stress: <strong style="color: var(--signal-stress);">87%</strong> · Buddy: 😟 Worried · Knowledge: 4 cards · Time: 43:21</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Timeline (bottom) -->
+  <div class="timeline-area">
+
+    <div class="timeline-controls">
+      <div class="play-controls">
+        <button class="play-btn">⏮</button>
+        <button class="play-btn">⏪</button>
+        <button class="play-btn active">▶</button>
+        <button class="play-btn">⏸</button>
+        <button class="play-btn">⏩</button>
+        <button class="play-btn">⏭</button>
+      </div>
+
+      <div class="timeline-position">14:23:45 / 8h 23m</div>
+
+      <select class="speed-selector">
+        <option>1× speed</option>
+        <option>2× speed</option>
+        <option>4× speed</option>
+        <option>10× speed</option>
+        <option>0.5× speed</option>
+      </select>
+
+      <div style="margin-left: auto; display: flex; gap: 8px; font-size: 11px; color: var(--ink-300);">
+        <span>📌 3 bookmarks</span>
+        <span style="color: var(--ink-500);">|</span>
+        <span>⚠ 2 flagged events</span>
+        <span style="color: var(--ink-500);">|</span>
+        <span>💬 47 messages</span>
+      </div>
+    </div>
+
+    <div class="timeline-track">
+      <!-- Stress curve background -->
+      <div class="stress-curve-bg">
+        <svg class="stress-curve" viewBox="0 0 800 130" preserveAspectRatio="none">
+          <!-- Day separators (7 days) -->
+          <line x1="115" y1="0" x2="115" y2="130" stroke="rgba(149, 153, 176, 0.3)" stroke-dasharray="2 2"/>
+          <line x1="230" y1="0" x2="230" y2="130" stroke="rgba(149, 153, 176, 0.3)" stroke-dasharray="2 2"/>
+          <line x1="345" y1="0" x2="345" y2="130" stroke="rgba(149, 153, 176, 0.3)" stroke-dasharray="2 2"/>
+          <line x1="460" y1="0" x2="460" y2="130" stroke="rgba(149, 153, 176, 0.3)" stroke-dasharray="2 2"/>
+          <line x1="575" y1="0" x2="575" y2="130" stroke="rgba(149, 153, 176, 0.3)" stroke-dasharray="2 2"/>
+          <line x1="690" y1="0" x2="690" y2="130" stroke="rgba(149, 153, 176, 0.3)" stroke-dasharray="2 2"/>
+
+          <!-- Stress curve area -->
+          <path d="M 0,90 L 60,80 L 115,75 L 175,55 L 230,40 L 290,15 L 345,5 L 405,30 L 460,40 L 520,50 L 575,35 L 635,55 L 690,60 L 760,70 L 800,75 L 800,130 L 0,130 Z" fill="url(#stressGradient)" opacity="0.4"/>
+
+          <path d="M 0,90 L 60,80 L 115,75 L 175,55 L 230,40 L 290,15 L 345,5 L 405,30 L 460,40 L 520,50 L 575,35 L 635,55 L 690,60 L 760,70 L 800,75" fill="none" stroke="var(--lumina-500)" stroke-width="2"/>
+
+          <defs>
+            <linearGradient id="stressGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#C9584A" stop-opacity="0.6"/>
+              <stop offset="50%" stop-color="#D98E3F" stop-opacity="0.4"/>
+              <stop offset="100%" stop-color="#5A8A7F" stop-opacity="0.2"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Threshold line -->
+          <line x1="0" y1="20" x2="800" y2="20" stroke="rgba(201, 88, 74, 0.4)" stroke-dasharray="4 4"/>
+        </svg>
+      </div>
+
+      <!-- Day labels -->
+      <div class="day-label" style="left: 8px;">D1</div>
+      <div class="day-label" style="left: calc(14% + 8px);">D2</div>
+      <div class="day-label" style="left: calc(28% + 8px); color: var(--lumina-300);">D3 · CRISIS</div>
+      <div class="day-label" style="left: calc(43% + 8px);">D4</div>
+      <div class="day-label" style="left: calc(57% + 8px);">D5</div>
+      <div class="day-label" style="left: calc(72% + 8px);">D6</div>
+      <div class="day-label" style="left: calc(86% + 8px);">D7</div>
+
+      <!-- Bookmarks -->
+      <div class="bookmark" style="left: 35%;" title="Stress peak">📌</div>
+      <div class="bookmark" style="left: 38%; background: var(--signal-alert);" title="Hallucination event">⚠</div>
+      <div class="bookmark" style="left: 60%;" title="Branch decision">📌</div>
+
+      <!-- Playhead -->
+      <div class="playhead" style="left: 38%;"></div>
+    </div>
+  </div>
+
+  <!-- Investigation Panel -->
+  <aside class="investigation-panel">
+
+    <div class="panel-section">
+      <div class="panel-section-title">⚠ Investigation Target</div>
+      <div class="investigation-target">
+        <div class="target-label">FLAGGED MESSAGE · Mr. Alpha @ 14:23:45</div>
+        <div class="target-content">"Quick sort luôn là O(n log n)."</div>
+      </div>
+      <div style="font-size: 11px; color: var(--ink-300); padding: 8px; background: var(--ink-900); border-radius: 4px;">
+        ❌ <strong style="color: var(--signal-stress);">Factually incorrect.</strong> Quick sort worst case is O(n²). Average case is O(n log n).
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">🧠 AI Decision Trace</div>
+
+      <div class="trace-item">
+        <div class="trace-label">Trigger Event</div>
+        <div class="trace-value">student_question_about_complexity</div>
+      </div>
+
+      <div class="trace-item">
+        <div class="trace-label">Persona used</div>
+        <div class="trace-value">Mr. Alpha v0.6</div>
+      </div>
+
+      <div class="trace-item">
+        <div class="trace-label">Knowledge sources accessed</div>
+        <div class="trace-value alert">⚠ NONE (hallucination)</div>
+      </div>
+
+      <div class="trace-item">
+        <div class="trace-label">Should have referenced</div>
+        <div class="trace-value success">"Big O Notation" knowledge card</div>
+      </div>
+
+      <div class="trace-item">
+        <div class="trace-label">Confidence score</div>
+        <div class="trace-value alert">0.34 (low)</div>
+      </div>
+
+      <div class="trace-item">
+        <div class="trace-label">Tokens · Latency</div>
+        <div class="trace-value">87 tokens · 1.2s · $0.001</div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">🔍 Root Cause Analysis</div>
+      <div class="root-cause-card">
+        <div class="root-cause-title">Persona prompt missing constraint</div>
+        <div class="root-cause-body">
+          Mr. Alpha system prompt does not enforce: <em>"Always cite knowledge cards for technical facts."</em>
+          <br><br>
+          When student stress detected (87%), persona prioritized brevity over accuracy. Defaulted to common-knowledge answer instead of checking Vault.
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">⚡ Suggested Actions</div>
+      <div class="action-buttons">
+        <button class="action-btn primary">
+          🎭 Open Persona Studio · Patch Mr. Alpha
+        </button>
+        <button class="action-btn">
+          📚 Review Knowledge Vault entry
+        </button>
+        <button class="action-btn">
+          🎼 Update orchestration rules
+        </button>
+        <button class="action-btn">
+          🧪 Add regression test
+        </button>
+        <button class="action-btn">
+          📌 Bookmark for team review
+        </button>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">📋 Audit Log</div>
+      <div class="audit-log">
+        14:48:23 · Hà Trần (Operator) · Opened session<br>
+        14:48:31 · Justification: "Investigating hallucination report"<br>
+        14:50:12 · Jumped to T+14:23:45<br>
+        14:50:45 · Inspected AI Decision Trace<br>
+        14:51:10 · Bookmarked moment<br>
+        — All actions audited per privacy policy —
+      </div>
+    </div>
+
+  </aside>
+
+</div>
+
+<script src="../shared/navigation.js"></script>
+</body>
+</html>

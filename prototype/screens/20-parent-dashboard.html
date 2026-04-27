@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMINA — Parent Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/design-system.css">
+<style>
+  body { background: var(--paper-200); }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--space-5);
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Greeting */
+  .greeting {
+    padding: var(--space-5) 0 var(--space-4);
+  }
+
+  .greeting-title {
+    font-family: var(--font-display);
+    font-size: 32px;
+    color: var(--ink-900);
+    margin-bottom: 4px;
+  }
+
+  .greeting-subtitle {
+    font-size: 14px;
+    color: var(--ink-500);
+  }
+
+  /* Children selector */
+  .children-row {
+    display: flex;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  .child-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px 8px 6px;
+    background: var(--paper-100);
+    border: 1px solid var(--ink-200);
+    border-radius: 24px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .child-chip.active {
+    border-color: var(--lumina-500);
+    background: var(--lumina-50);
+  }
+
+  .child-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--lumina-300), var(--lumina-500));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--paper-100);
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  .child-info { display: flex; flex-direction: column; }
+  .child-name { font-weight: 500; font-size: 13px; color: var(--ink-900); }
+  .child-meta { font-size: 11px; color: var(--ink-500); }
+
+  /* Cards Grid */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--space-4);
+    margin: var(--space-5) 0;
+  }
+
+  .card-block {
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+  }
+
+  .card-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-500);
+    margin-bottom: var(--space-3);
+  }
+
+  /* Active scenario card */
+  .scenario-display {
+    background: linear-gradient(135deg, var(--paper-100), var(--lumina-50));
+    border-color: var(--lumina-100);
+  }
+
+  .scenario-title {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--ink-900);
+    margin-bottom: 6px;
+  }
+
+  .scenario-day {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--lumina-700);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: var(--space-3);
+  }
+
+  .progress-track {
+    background: var(--ink-100);
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .progress-fill {
+    background: linear-gradient(90deg, var(--lumina-300), var(--lumina-500));
+    height: 100%;
+    width: 42%;
+  }
+
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--ink-500);
+    margin-bottom: var(--space-4);
+    font-family: var(--font-mono);
+  }
+
+  .status-badges {
+    display: flex;
+    gap: 8px;
+    margin-bottom: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+  }
+
+  .status-badge.engaged { background: rgba(90, 138, 127, 0.15); color: var(--signal-calm); }
+  .status-badge.stress { background: rgba(217, 142, 63, 0.15); color: var(--signal-alert); }
+  .status-badge.time { background: var(--ink-100); color: var(--ink-700); }
+
+  .scenario-detail {
+    padding: var(--space-3);
+    background: var(--paper-100);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--ink-700);
+    line-height: 1.6;
+  }
+
+  .scenario-detail strong { color: var(--ink-900); }
+
+  .transparency-note {
+    margin-top: var(--space-3);
+    padding: 10px;
+    background: var(--paper-200);
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--ink-500);
+    font-style: italic;
+  }
+
+  /* Insights */
+  .insight-card {
+    background: var(--paper-200);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+
+  .insight-week {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-700);
+    line-height: 1.6;
+  }
+
+  .talking-points {
+    margin-top: var(--space-4);
+  }
+
+  .talking-points-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--lumina-700);
+    margin-bottom: var(--space-2);
+  }
+
+  .talking-row {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 4px;
+    display: flex;
+    gap: 8px;
+    line-height: 1.5;
+  }
+
+  .talking-row.do {
+    background: rgba(90, 138, 127, 0.08);
+    color: var(--ink-700);
+  }
+
+  .talking-row.do::before {
+    content: '✓';
+    color: var(--signal-calm);
+    font-weight: 700;
+  }
+
+  .talking-row.dont {
+    background: rgba(201, 88, 74, 0.05);
+    color: var(--ink-600);
+  }
+
+  .talking-row.dont::before {
+    content: '✗';
+    color: var(--signal-stress);
+    font-weight: 700;
+  }
+
+  /* Milestones */
+  .milestone-row {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--ink-100);
+  }
+
+  .milestone-row:last-child { border-bottom: none; }
+
+  .milestone-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    background: rgba(90, 138, 127, 0.15);
+    color: var(--signal-calm);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .milestone-info { flex: 1; }
+
+  .milestone-title {
+    font-size: 13px;
+    color: var(--ink-900);
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  .milestone-meta {
+    font-size: 11px;
+    color: var(--ink-500);
+    font-family: var(--font-mono);
+  }
+
+  .milestone-quote {
+    font-style: italic;
+    font-size: 12px;
+    color: var(--ink-600);
+    margin-top: 4px;
+  }
+
+  /* Reports */
+  .report-card {
+    padding: 12px;
+    background: var(--paper-200);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-2);
+  }
+
+  .report-title {
+    font-family: var(--font-display);
+    font-size: 14px;
+    color: var(--ink-900);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .report-meta {
+    font-size: 11px;
+    color: var(--ink-500);
+    margin-bottom: 6px;
+  }
+
+  /* Quick actions */
+  .quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+
+  .quick-action {
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: center;
+  }
+
+  .quick-action:hover {
+    border-color: var(--lumina-300);
+    transform: translateY(-2px);
+  }
+
+  .qa-icon {
+    font-size: 24px;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .qa-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-900);
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .cards-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="header"></div>
+
+<div class="container">
+
+  <div class="greeting">
+    <h1 class="greeting-title">Chào ông Hùng</h1>
+    <div class="greeting-subtitle">Last update: 2 hours ago</div>
+
+    <div class="children-row">
+      <div class="child-chip active">
+        <div class="child-avatar">MN</div>
+        <div class="child-info">
+          <div class="child-name">Minh Nguyen</div>
+          <div class="child-meta">17 tuổi · Grade 12</div>
+        </div>
+      </div>
+      <div class="child-chip">
+        <div class="child-avatar" style="background: linear-gradient(135deg, var(--signal-focus), #3D5985);">LN</div>
+        <div class="child-info">
+          <div class="child-name">Linh Nguyen</div>
+          <div class="child-meta">15 tuổi · Grade 10</div>
+        </div>
+      </div>
+      <div class="child-chip" style="background: var(--paper-200);">
+        <span style="margin-left: 12px; color: var(--ink-500);">+ Add child</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+
+    <!-- Active Scenario -->
+    <div class="card-block scenario-display">
+      <div class="card-label">Active Scenario</div>
+
+      <div class="scenario-day">📢 Marketing · Day 3 / 7</div>
+      <div class="scenario-title">Crisis Management</div>
+
+      <div class="progress-track">
+        <div class="progress-fill"></div>
+      </div>
+      <div class="progress-meta">
+        <span>42% complete</span>
+        <span>~3 days remaining</span>
+      </div>
+
+      <div class="status-badges">
+        <span class="status-badge engaged">✓ Engaged</span>
+        <span class="status-badge stress">⚡ Moderate stress</span>
+        <span class="status-badge time">⏱ Last: 2h ago · 58 min</span>
+      </div>
+
+      <div class="scenario-detail">
+        <strong>Today's theme:</strong> "Crisis Hits"<br>
+        <span style="color: var(--ink-500);">Trying to:</span> Analyze campaign drop và respond to client pressure
+      </div>
+
+      <div class="transparency-note">
+        🔒 <strong>Standard transparency</strong> — Bạn xem được progress overview, milestones, và Final Report. Không xem được chat content cụ thể (privacy).
+      </div>
+    </div>
+
+    <!-- Insights -->
+    <div class="card-block">
+      <div class="card-label">💡 Insights & Tips</div>
+
+      <div class="insight-card">
+        <div class="insight-week">
+          "Minh thể hiện strong logical thinking trong Day 2 metrics analysis. Có vẻ con yêu thích data work."
+        </div>
+      </div>
+
+      <div class="talking-points">
+        <div class="talking-points-title">💬 Talking Points</div>
+
+        <div class="talking-row do">"Hôm nay con thấy ngành Marketing thế nào?"</div>
+        <div class="talking-row do">"Có moment nào khiến con suy nghĩ?"</div>
+        <div class="talking-row do">"Stress level của con thế nào?"</div>
+
+        <div class="talking-points-title" style="margin-top: 16px; color: var(--signal-stress);">⚠ AVOID</div>
+        <div class="talking-row dont">"Con quyết định ngành chưa?" (tạo áp lực)</div>
+        <div class="talking-row dont">"Tại sao con chọn không đúng?"</div>
+      </div>
+
+      <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 12px;">📅 Schedule talk reminder</button>
+    </div>
+
+  </div>
+
+  <!-- Bottom row -->
+  <div class="cards-grid">
+
+    <!-- Milestones -->
+    <div class="card-block">
+      <div class="card-label">🏆 Recent Milestones</div>
+
+      <div class="milestone-row">
+        <div class="milestone-icon">✓</div>
+        <div class="milestone-info">
+          <div class="milestone-title">Day 2 completed · Marketing</div>
+          <div class="milestone-meta">2 days ago</div>
+          <div class="milestone-quote">"Strong analytical thinking demonstrated"</div>
+        </div>
+      </div>
+
+      <div class="milestone-row">
+        <div class="milestone-icon">✓</div>
+        <div class="milestone-info">
+          <div class="milestone-title">Day 1 completed · Marketing</div>
+          <div class="milestone-meta">3 days ago</div>
+          <div class="milestone-quote">"Curious and engaged with new domain"</div>
+        </div>
+      </div>
+
+      <div class="milestone-row">
+        <div class="milestone-icon" style="background: var(--lumina-50); color: var(--lumina-700);">📊</div>
+        <div class="milestone-info">
+          <div class="milestone-title">Started Marketing scenario</div>
+          <div class="milestone-meta">4 days ago</div>
+          <div class="milestone-quote">2nd major exploration</div>
+        </div>
+      </div>
+
+      <div class="milestone-row">
+        <div class="milestone-icon" style="background: rgba(74, 111, 165, 0.15); color: var(--signal-focus);">⚔</div>
+        <div class="milestone-info">
+          <div class="milestone-title">Completed SE · The Fighter</div>
+          <div class="milestone-meta">2 weeks ago</div>
+          <div class="milestone-quote">Score: 78/100</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reports -->
+    <div class="card-block">
+      <div class="card-label">📄 Reports Library</div>
+
+      <div class="report-card">
+        <div class="report-title">🖥 Software Engineering</div>
+        <div class="report-meta">Completed 2 weeks ago · ⚔️ The Fighter · 78/100</div>
+        <button class="btn btn-primary btn-sm" style="width: 100%;" onclick="window.location.href='10-final-report.html'">View Full Report</button>
+      </div>
+
+      <div class="report-card" style="opacity: 0.6;">
+        <div class="report-title">📢 Marketing</div>
+        <div class="report-meta">In progress · Day 3/7</div>
+        <div style="font-size: 11px; color: var(--ink-500); padding: 6px 10px; background: var(--paper-100); border-radius: 4px; text-align: center;">Report available after Day 7</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="card-block" style="margin-top: 24px;">
+    <div class="card-label">Quick Actions</div>
+    <div class="quick-actions-grid">
+      <div class="quick-action">
+        <span class="qa-icon">🎁</span>
+        <div class="qa-title">Gift Another Scenario</div>
+      </div>
+      <div class="quick-action">
+        <span class="qa-icon">📅</span>
+        <div class="qa-title">Schedule Talk</div>
+      </div>
+      <div class="quick-action">
+        <span class="qa-icon">⚙</span>
+        <div class="qa-title">Settings & Privacy</div>
+      </div>
+      <div class="quick-action">
+        <span class="qa-icon">💬</span>
+        <div class="qa-title">LUMINA Support</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="../shared/navigation.js"></script>
+<script>
+  document.getElementById('header').innerHTML = buildHeader({
+    breadcrumb: ['Parent Dashboard'],
+    rightActions: ['notification', 'avatar']
+  });
+</script>
+
+</body>
+</html>

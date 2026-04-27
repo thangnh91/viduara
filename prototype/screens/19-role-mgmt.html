@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMINA — Role & Permission</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/design-system.css">
+<style>
+  body { background: var(--paper-200); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+  .roles-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    overflow: hidden;
+  }
+
+  /* Roles sidebar */
+  .roles-sidebar {
+    background: var(--paper-100);
+    border-right: 1px solid var(--ink-100);
+    overflow-y: auto;
+    padding: var(--space-4);
+  }
+
+  .sidebar-section { margin-bottom: var(--space-4); }
+
+  .sidebar-section-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-400);
+    margin-bottom: var(--space-2);
+  }
+
+  .role-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--paper-200);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
+    transition: all var(--transition-fast);
+  }
+
+  .role-item:hover { border-color: var(--ink-200); }
+
+  .role-item.active {
+    background: var(--lumina-50);
+    border-color: var(--lumina-300);
+  }
+
+  .role-icon-wrap {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .role-icon-wrap.super { background: var(--ink-900); color: var(--lumina-300); }
+  .role-icon-wrap.designer { background: rgba(74, 111, 165, 0.15); color: var(--signal-focus); }
+  .role-icon-wrap.persona { background: rgba(223, 163, 25, 0.15); color: var(--lumina-700); }
+  .role-icon-wrap.engineer { background: rgba(90, 138, 127, 0.15); color: var(--signal-calm); }
+  .role-icon-wrap.curator { background: rgba(217, 142, 63, 0.15); color: var(--signal-alert); }
+  .role-icon-wrap.operator { background: var(--ink-100); color: var(--ink-700); }
+  .role-icon-wrap.custom { background: var(--lumina-500); color: var(--paper-100); }
+
+  .role-info { flex: 1; min-width: 0; }
+
+  .role-name {
+    font-size: 13px;
+    color: var(--ink-900);
+    font-weight: 500;
+  }
+
+  .role-count {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-500);
+  }
+
+  /* Center: Permissions */
+  .permissions-area {
+    overflow-y: auto;
+    padding: var(--space-5);
+  }
+
+  .role-header {
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    margin-bottom: var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .role-icon-large {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    background: rgba(74, 111, 165, 0.15);
+    color: var(--signal-focus);
+    flex-shrink: 0;
+  }
+
+  .role-title-large {
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: var(--ink-900);
+    margin-bottom: 4px;
+  }
+
+  .role-desc {
+    color: var(--ink-500);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .role-stats {
+    display: flex;
+    gap: var(--space-4);
+    margin-top: var(--space-2);
+    font-size: 12px;
+    color: var(--ink-500);
+    font-family: var(--font-mono);
+  }
+
+  .role-stats strong { color: var(--ink-900); }
+
+  /* Permissions group */
+  .perm-group {
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-3);
+    overflow: hidden;
+  }
+
+  .perm-group-header {
+    padding: var(--space-3) var(--space-4);
+    background: var(--paper-200);
+    border-bottom: 1px solid var(--ink-100);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-700);
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .perm-list {
+    padding: 8px 0;
+  }
+
+  .perm-row {
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: background var(--transition-fast);
+  }
+
+  .perm-row:hover { background: var(--paper-200); }
+
+  .perm-checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    border: 1px solid var(--ink-300);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer;
+    background: var(--paper-100);
+  }
+
+  .perm-checkbox.checked {
+    background: var(--signal-calm);
+    border-color: var(--signal-calm);
+    color: var(--paper-100);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .perm-checkbox.disabled {
+    background: var(--ink-100);
+    border-color: var(--ink-200);
+    color: var(--ink-300);
+    cursor: not-allowed;
+  }
+
+  .perm-name {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-700);
+    min-width: 240px;
+  }
+
+  .perm-desc {
+    font-size: 12px;
+    color: var(--ink-500);
+    flex: 1;
+  }
+
+  .perm-locked {
+    font-size: 11px;
+    padding: 2px 6px;
+    background: var(--ink-100);
+    color: var(--ink-500);
+    border-radius: 3px;
+    font-family: var(--font-mono);
+  }
+
+  /* Inheritance section */
+  .inheritance-card {
+    background: var(--lumina-50);
+    border: 1px solid var(--lumina-100);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-3);
+  }
+
+  .inheritance-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lumina-700);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .inheritance-tree {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--ink-700);
+  }
+
+  /* Users with this role */
+  .users-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .user-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px 4px 4px;
+    background: var(--paper-200);
+    border-radius: 14px;
+    font-size: 12px;
+    color: var(--ink-700);
+  }
+
+  .user-chip-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--lumina-300), var(--lumina-500));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--paper-100);
+    font-size: 9px;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<div id="header"></div>
+
+<div class="roles-grid">
+
+  <aside class="roles-sidebar">
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Standard Roles · Internal</div>
+
+      <div class="role-item">
+        <div class="role-icon-wrap super">⚙</div>
+        <div class="role-info">
+          <div class="role-name">Super Admin</div>
+          <div class="role-count">3 users · Full access</div>
+        </div>
+      </div>
+
+      <div class="role-item">
+        <div class="role-icon-wrap operator">📋</div>
+        <div class="role-info">
+          <div class="role-name">Operator</div>
+          <div class="role-count">2 users · Daily ops</div>
+        </div>
+      </div>
+
+      <div class="role-item active">
+        <div class="role-icon-wrap designer">🎨</div>
+        <div class="role-info">
+          <div class="role-name">Designer</div>
+          <div class="role-count">5 users · Scenarios</div>
+        </div>
+      </div>
+
+      <div class="role-item">
+        <div class="role-icon-wrap persona">✍</div>
+        <div class="role-info">
+          <div class="role-name">Persona Writer</div>
+          <div class="role-count">4 users · AI characters</div>
+        </div>
+      </div>
+
+      <div class="role-item">
+        <div class="role-icon-wrap engineer">🔧</div>
+        <div class="role-info">
+          <div class="role-name">Engineer</div>
+          <div class="role-count">8 users · Widgets</div>
+        </div>
+      </div>
+
+      <div class="role-item">
+        <div class="role-icon-wrap curator">📚</div>
+        <div class="role-info">
+          <div class="role-name">Curator</div>
+          <div class="role-count">3 users · Knowledge</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">User-Facing</div>
+
+      <div class="role-item">
+        <div class="role-icon-wrap" style="background: var(--paper-300); color: var(--ink-700);">🎓</div>
+        <div class="role-info">
+          <div class="role-name">Learner</div>
+          <div class="role-count">12,847 users</div>
+        </div>
+      </div>
+
+      <div class="role-item">
+        <div class="role-icon-wrap" style="background: var(--paper-300); color: var(--ink-700);">👨‍👩‍👧</div>
+        <div class="role-info">
+          <div class="role-name">Parent</div>
+          <div class="role-count">3,421 users</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Custom Roles</div>
+
+      <div class="role-item">
+        <div class="role-icon-wrap custom">★</div>
+        <div class="role-info">
+          <div class="role-name">Senior Designer</div>
+          <div class="role-count">2 users · Custom</div>
+        </div>
+      </div>
+
+      <div class="role-item">
+        <div class="role-icon-wrap custom">★</div>
+        <div class="role-info">
+          <div class="role-name">QA Tester</div>
+          <div class="role-count">1 user · Custom</div>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 8px;">+ Create Custom Role</button>
+    </div>
+
+  </aside>
+
+  <main class="permissions-area">
+
+    <div class="role-header">
+      <div class="role-icon-large">🎨</div>
+      <div style="flex: 1;">
+        <div class="role-title-large">Designer</div>
+        <div class="role-desc">Designers tạo và quản lý scenarios. Có quyền edit own scenarios, browse all assets, request new personas/widgets.</div>
+        <div class="role-stats">
+          <span><strong>5 users</strong> have this role</span>
+          <span><strong>11 permissions</strong> granted</span>
+          <span>Inherits from: <strong>Base role</strong></span>
+        </div>
+      </div>
+      <button class="btn btn-secondary">✏ Edit description</button>
+    </div>
+
+    <!-- Inheritance -->
+    <div class="inheritance-card">
+      <div class="inheritance-title">★ Inherited by</div>
+      <div class="inheritance-tree">
+        Designer (base) → <strong>Senior Designer</strong> (custom · adds <code style="background: var(--paper-100); padding: 2px 6px; border-radius: 3px; font-family: var(--font-mono); font-size: 11px;">scenario.publish</code> + 1 more)
+      </div>
+    </div>
+
+    <!-- Permissions: Scenario -->
+    <div class="perm-group">
+      <div class="perm-group-header">
+        <span>SCENARIO Permissions</span>
+        <span style="font-family: var(--font-body); text-transform: none; color: var(--signal-calm); font-size: 12px; font-weight: normal; letter-spacing: 0;">3 of 6 granted</span>
+      </div>
+      <div class="perm-list">
+        <div class="perm-row">
+          <div class="perm-checkbox checked">✓</div>
+          <div class="perm-name">scenario.create</div>
+          <div class="perm-desc">Create new scenarios from scratch</div>
+        </div>
+        <div class="perm-row">
+          <div class="perm-checkbox checked">✓</div>
+          <div class="perm-name">scenario.read.all</div>
+          <div class="perm-desc">View all scenarios in workspace</div>
+        </div>
+        <div class="perm-row">
+          <div class="perm-checkbox checked">✓</div>
+          <div class="perm-name">scenario.edit.own</div>
+          <div class="perm-desc">Edit scenarios you created</div>
+        </div>
+        <div class="perm-row">
+          <div class="perm-checkbox"></div>
+          <div class="perm-name">scenario.edit.others</div>
+          <div class="perm-desc">Edit scenarios by other designers</div>
+        </div>
+        <div class="perm-row">
+          <div class="perm-checkbox disabled">—</div>
+          <div class="perm-name">scenario.publish</div>
+          <div class="perm-desc">Publish scenarios to production</div>
+          <span class="perm-locked">🔒 Super Admin only</span>
+        </div>
+        <div class="perm-row">
+          <div class="perm-checkbox disabled">—</div>
+          <div class="perm-name">scenario.delete</div>
+          <div class="perm-desc">Permanently delete scenarios</div>
+          <span class="perm-locked">🔒 Super Admin only</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Permissions: Persona -->
+    <div class="perm-group">
+      <div class="perm-group-header">
+        <span>PERSONA Permissions</span>
+        <span style="font-family: var(--font-body); text-transform: none; color: var(--signal-calm); font-size: 12px; font-weight: normal; letter-spacing: 0;">1 of 3 granted</span>
+      </div>
+      <div class="perm-list">
+        <div class="perm-row">
+          <div class="perm-checkbox checked">✓</div>
+          <div class="perm-name">persona.read</div>
+          <div class="perm-desc">View persona library</div>
+        </div>
+        <div class="perm-row">
+          <div class="perm-checkbox"></div>
+          <div class="perm-name">persona.create</div>
+          <div class="perm-desc">Create new AI personas</div>
+        </div>
+        <div class="perm-row">
+          <div class="perm-checkbox"></div>
+          <div class="perm-name">persona.edit</div>
+          <div class="perm-desc">Edit persona configurations</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Permissions: Other -->
+    <div class="perm-group">
+      <div class="perm-group-header">
+        <span>OTHER Permissions</span>
+        <span style="font-family: var(--font-body); text-transform: none; color: var(--signal-calm); font-size: 12px; font-weight: normal; letter-spacing: 0;">7 granted</span>
+      </div>
+      <div class="perm-list">
+        <div class="perm-row">
+          <div class="perm-checkbox checked">✓</div>
+          <div class="perm-name">widget.read</div>
+          <div class="perm-desc">Browse widget catalog</div>
+        </div>
+        <div class="perm-row">
+          <div class="perm-checkbox checked">✓</div>
+          <div class="perm-name">knowledge.read</div>
+          <div class="perm-desc">Browse knowledge vault</div>
+        </div>
+        <div class="perm-row">
+          <div class="perm-checkbox checked">✓</div>
+          <div class="perm-name">analytics.view.own</div>
+          <div class="perm-desc">View analytics for own scenarios</div>
+        </div>
+        <div class="perm-row">
+          <div class="perm-checkbox checked">✓</div>
+          <div class="perm-name">playtest.run</div>
+          <div class="perm-desc">Run playtests on scenarios</div>
+        </div>
+        <div class="perm-row">
+          <div class="perm-checkbox checked">✓</div>
+          <div class="perm-name">session_replay.view.anonymized</div>
+          <div class="perm-desc">View anonymized replays</div>
+        </div>
+        <div class="perm-row">
+          <div class="perm-checkbox checked">✓</div>
+          <div class="perm-name">workspace.access.assigned</div>
+          <div class="perm-desc">Access assigned workspace</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users -->
+    <div style="background: var(--paper-100); border: 1px solid var(--ink-100); border-radius: var(--radius-md); padding: var(--space-4); margin-top: var(--space-4);">
+      <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-500); margin-bottom: 12px;">Users with this role (5)</div>
+      <div class="users-list">
+        <div class="user-chip"><span class="user-chip-avatar">CN</span> Carol Nguyen</div>
+        <div class="user-chip"><span class="user-chip-avatar">DP</span> David Pham</div>
+        <div class="user-chip"><span class="user-chip-avatar">LT</span> Linh Tran</div>
+        <div class="user-chip"><span class="user-chip-avatar">HL</span> Hoa Le</div>
+        <div class="user-chip"><span class="user-chip-avatar">QV</span> Quan Vo</div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 8px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--ink-100);">
+      <button class="btn btn-primary">💾 Save changes</button>
+      <button class="btn btn-secondary">↺ Reset</button>
+      <button class="btn btn-ghost" style="margin-left: auto; color: var(--signal-stress);">⚠ Delete role</button>
+    </div>
+
+  </main>
+</div>
+
+<script src="../shared/navigation.js"></script>
+<script>
+  document.getElementById('header').innerHTML = buildHeader({
+    breadcrumb: ['Settings', 'Role & Permission'],
+    rightActions: ['notification', 'avatar']
+  });
+
+  document.querySelectorAll('.role-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.role-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('.perm-checkbox').forEach(cb => {
+    cb.addEventListener('click', () => {
+      if (cb.classList.contains('disabled')) return;
+      cb.classList.toggle('checked');
+      cb.textContent = cb.classList.contains('checked') ? '✓' : '';
+    });
+  });
+</script>
+
+</body>
+</html>

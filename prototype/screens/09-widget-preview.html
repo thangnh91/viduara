@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMINA — Widget Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/design-system.css">
+<style>
+  body {
+    background: rgba(20, 24, 38, 0.85);
+    backdrop-filter: blur(8px);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-5);
+  }
+
+  .modal-hint {
+    position: fixed;
+    top: var(--space-4);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    background: var(--ink-900);
+    color: var(--paper-100);
+    border-radius: 20px;
+    font-size: 12px;
+    z-index: 100;
+    border: 1px solid var(--ink-600);
+  }
+
+  .modal-hint a {
+    color: var(--lumina-300);
+    text-decoration: underline;
+    margin-left: 8px;
+  }
+
+  .preview-modal {
+    background: var(--paper-100);
+    border-radius: var(--radius-xl);
+    width: 900px;
+    max-width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+  }
+
+  .preview-header {
+    padding: var(--space-4) var(--space-5);
+    background: var(--paper-200);
+    border-bottom: 1px solid var(--ink-100);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .preview-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    color: var(--ink-900);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .preview-version {
+    padding: 2px 8px;
+    background: var(--ink-200);
+    color: var(--ink-700);
+    border-radius: 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  .preview-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--paper-300);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .preview-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-5);
+  }
+
+  .preview-controls-row {
+    display: flex;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    padding: var(--space-3);
+    background: var(--paper-200);
+    border-radius: var(--radius-md);
+    flex-wrap: wrap;
+  }
+
+  .preview-control-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .preview-control-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--ink-500);
+  }
+
+  /* Widget render area */
+  .widget-render-area {
+    background: var(--ink-900);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    margin-bottom: var(--space-4);
+    min-height: 380px;
+  }
+
+  /* Mock CampaignDashboard content */
+  .mock-dashboard-header {
+    color: var(--paper-100);
+    margin-bottom: var(--space-4);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .mock-dashboard-header h3 {
+    font-family: var(--font-display);
+    font-size: 18px;
+    margin: 0;
+  }
+
+  .mock-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .mock-kpi {
+    padding: var(--space-3);
+    background: rgba(255,255,255,0.05);
+    border-radius: var(--radius-md);
+    color: var(--paper-100);
+  }
+
+  .mock-kpi-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--ink-300);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .mock-kpi-value {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--lumina-300);
+  }
+
+  .mock-kpi-trend {
+    font-size: 10px;
+    color: var(--signal-stress);
+  }
+
+  .mock-chart {
+    background: rgba(255,255,255,0.03);
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+  }
+
+  /* Event log */
+  .event-log {
+    background: var(--paper-200);
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-700);
+    max-height: 120px;
+    overflow-y: auto;
+  }
+
+  .event-log-line {
+    padding: 2px 0;
+  }
+
+  .event-log-line.alert { color: var(--signal-stress); font-weight: 500; }
+
+  .event-trigger-buttons {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-3);
+  }
+
+  .preview-actions {
+    padding: var(--space-3) var(--space-5);
+    background: var(--paper-200);
+    border-top: 1px solid var(--ink-100);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+  }
+</style>
+</head>
+<body>
+
+<div class="modal-hint">
+  💡 Widget Preview — usually opens from Catalog hoặc Architect.
+  <a href="../index.html">← Back to Index</a>
+</div>
+
+<div class="preview-modal">
+
+  <div class="preview-header">
+    <div class="preview-title">
+      📊 Widget Preview: CampaignDashboard
+      <span class="preview-version">v1.4 PRODUCTION</span>
+    </div>
+    <a href="../index.html" class="preview-close">×</a>
+  </div>
+
+  <div class="preview-body">
+
+    <div class="preview-controls-row">
+      <div class="preview-control-group">
+        <span class="preview-control-label">Mock data:</span>
+        <select class="filter-select" style="padding: 4px 10px; background: white; border: 1px solid var(--ink-200); border-radius: 4px; font-size: 13px;">
+          <option>Campaign Crisis · Day 3</option>
+          <option>Campaign Launch · Day 1</option>
+          <option>Recovery Phase</option>
+          <option>Custom JSON...</option>
+        </select>
+      </div>
+
+      <div class="preview-control-group">
+        <span class="preview-control-label">Fidelity:</span>
+        <select class="filter-select" style="padding: 4px 10px; background: white; border: 1px solid var(--ink-200); border-radius: 4px; font-size: 13px;">
+          <option>● Beginner</option>
+          <option>Intermediate</option>
+          <option>Advanced</option>
+        </select>
+      </div>
+
+      <div class="preview-control-group">
+        <span class="preview-control-label">Viewport:</span>
+        <select class="filter-select" style="padding: 4px 10px; background: white; border: 1px solid var(--ink-200); border-radius: 4px; font-size: 13px;">
+          <option>Workspace</option>
+          <option>Mobile</option>
+          <option>Tablet</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Widget render -->
+    <div class="widget-render-area">
+      <div class="mock-dashboard-header">
+        <h3>Q2 Marketing Campaign · Live</h3>
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--signal-stress);">⚠ Anomaly detected</span>
+      </div>
+
+      <div class="mock-kpis">
+        <div class="mock-kpi">
+          <div class="mock-kpi-label">ROAS</div>
+          <div class="mock-kpi-value">2.1×</div>
+          <div class="mock-kpi-trend">▼ -40%</div>
+        </div>
+        <div class="mock-kpi">
+          <div class="mock-kpi-label">CAC</div>
+          <div class="mock-kpi-value">$47</div>
+          <div class="mock-kpi-trend">▲ +85%</div>
+        </div>
+        <div class="mock-kpi">
+          <div class="mock-kpi-label">CTR</div>
+          <div class="mock-kpi-value">1.2%</div>
+          <div class="mock-kpi-trend">▼ Below benchmark</div>
+        </div>
+        <div class="mock-kpi">
+          <div class="mock-kpi-label">Conv.</div>
+          <div class="mock-kpi-value" style="color: var(--signal-calm);">2.8%</div>
+          <div class="mock-kpi-trend" style="color: var(--signal-calm);">▲ Stable</div>
+        </div>
+      </div>
+
+      <div class="mock-chart">
+        <svg width="100%" height="120" viewBox="0 0 800 120">
+          <path d="M 0,30 L 60,28 L 120,32 L 180,30 L 240,40 L 300,55 L 360,75 L 420,85 L 480,95 L 540,90 L 600,92 L 660,95 L 720,90 L 800,92" fill="none" stroke="#DFA319" stroke-width="2.5"/>
+          <path d="M 0,30 L 60,28 L 120,32 L 180,30 L 240,40 L 300,55 L 360,75 L 420,85 L 480,95 L 540,90 L 600,92 L 660,95 L 720,90 L 800,92 L 800,120 L 0,120 Z" fill="rgba(223, 163, 25, 0.2)"/>
+          <line x1="240" y1="0" x2="240" y2="120" stroke="rgba(201, 88, 74, 0.5)" stroke-dasharray="2 2"/>
+          <text x="245" y="15" font-size="9" fill="#C9584A" font-family="JetBrains Mono">Anomaly start</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Event simulation -->
+    <h4 style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; color: var(--ink-500); margin-bottom: 8px;">Try triggering events</h4>
+    <div class="event-trigger-buttons">
+      <button class="btn btn-secondary btn-sm">▶ Inject ROAS spike</button>
+      <button class="btn btn-secondary btn-sm">▶ Trigger budget alert</button>
+      <button class="btn btn-secondary btn-sm">▶ Audience saturation</button>
+      <button class="btn btn-secondary btn-sm">↻ Reset to baseline</button>
+    </div>
+
+    <h4 style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; color: var(--ink-500); margin-bottom: 8px;">Events log</h4>
+    <div class="event-log">
+      <div class="event-log-line">14:23:45 widget.mounted · scenario=marketing-day-3</div>
+      <div class="event-log-line">14:23:46 data.loaded · 14 days, 2,341 events</div>
+      <div class="event-log-line">14:23:47 [Test] anomaly_detected · ROAS drop > 30%</div>
+      <div class="event-log-line alert">14:23:48 ALERT: Critical threshold breached</div>
+      <div class="event-log-line">14:23:49 ui.alert_shown · type=anomaly</div>
+      <div class="event-log-line">14:23:50 user.clicked · element=insight-card</div>
+    </div>
+
+  </div>
+
+  <div class="preview-actions">
+    <button class="btn btn-secondary btn-sm">🔀 Open in Studio</button>
+    <button class="btn btn-secondary btn-sm">📋 Copy manifest</button>
+    <button class="btn btn-primary btn-sm">➕ Add to Marketing scenario</button>
+  </div>
+
+</div>
+
+</body>
+</html>

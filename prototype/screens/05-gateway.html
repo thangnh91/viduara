@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMINA — Gateway</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/design-system.css">
+<style>
+  body {
+    background: linear-gradient(180deg, var(--paper-100) 0%, var(--paper-200) 100%);
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: var(--space-5);
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: var(--space-7) 0 var(--space-6);
+  }
+
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: 56px;
+    font-weight: 500;
+    line-height: 1.1;
+    color: var(--ink-900);
+    margin-bottom: var(--space-4);
+  }
+
+  .hero-title em { font-style: italic; color: var(--lumina-700); }
+
+  .hero-subtitle {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 20px;
+    color: var(--ink-500);
+    margin-bottom: var(--space-5);
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+    margin-bottom: var(--space-6);
+  }
+
+  .trust-row {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-5);
+    padding: var(--space-3) var(--space-5);
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-xl);
+    font-size: 13px;
+    color: var(--ink-500);
+  }
+
+  .trust-row strong { color: var(--ink-900); }
+  .trust-divider { color: var(--ink-200); }
+
+  /* Recommendations */
+  .recs-section {
+    margin: var(--space-6) 0;
+    background: linear-gradient(135deg, var(--lumina-50), var(--paper-100));
+    border: 1px solid var(--lumina-100);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+  }
+
+  .recs-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+    font-size: 14px;
+    color: var(--lumina-700);
+    font-weight: 500;
+  }
+
+  .recs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-3);
+  }
+
+  .rec-card {
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    text-align: center;
+  }
+
+  .rec-tier {
+    font-size: 18px;
+    margin-bottom: var(--space-2);
+  }
+
+  .rec-name {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ink-900);
+    margin-bottom: var(--space-2);
+  }
+
+  .rec-match {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--lumina-700);
+    margin-bottom: var(--space-3);
+    font-weight: 500;
+  }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    padding: var(--space-4) 0;
+    margin-bottom: var(--space-5);
+    border-bottom: 1px solid var(--ink-100);
+  }
+
+  .filter-chips {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .filter-chip {
+    padding: 6px 12px;
+    background: var(--paper-100);
+    border: 1px solid var(--ink-200);
+    border-radius: 16px;
+    font-size: 13px;
+    color: var(--ink-600);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .filter-chip:hover {
+    border-color: var(--ink-400);
+  }
+
+  .filter-chip.active {
+    background: var(--ink-900);
+    color: var(--paper-100);
+    border-color: var(--ink-900);
+  }
+
+  /* Major cards grid */
+  .majors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-7);
+  }
+
+  .major-card {
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all var(--transition-base);
+    cursor: pointer;
+  }
+
+  .major-card:hover:not(.coming-soon) {
+    transform: translateY(-3px);
+    border-color: var(--lumina-300);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .major-card.coming-soon {
+    opacity: 0.7;
+  }
+
+  .major-hero {
+    padding: var(--space-6) var(--space-5);
+    text-align: center;
+    background: linear-gradient(135deg, var(--ink-900), var(--ink-700));
+    color: var(--paper-100);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .major-hero.medical {
+    background: linear-gradient(135deg, #3D2A2A, #5A3838);
+  }
+
+  .major-hero.marketing {
+    background: linear-gradient(135deg, #2A2A3D, #38385A);
+  }
+
+  .major-icon {
+    font-size: 48px;
+    margin-bottom: var(--space-2);
+  }
+
+  .major-name {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 500;
+    margin-bottom: var(--space-1);
+  }
+
+  .major-name-vi {
+    font-size: 13px;
+    color: var(--ink-300);
+    font-style: italic;
+  }
+
+  .coming-soon-badge {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    padding: 4px 10px;
+    background: var(--lumina-500);
+    color: var(--ink-900);
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+  }
+
+  .completed-badge {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    padding: 4px 10px;
+    background: var(--signal-calm);
+    color: var(--paper-100);
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .in-progress-badge {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    padding: 4px 10px;
+    background: var(--paper-100);
+    color: var(--ink-900);
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 0 0 2px var(--lumina-500);
+  }
+
+  .in-progress-badge::before {
+    content: '●';
+    color: var(--lumina-500);
+    animation: pulse 1.5s infinite;
+  }
+
+  /* Highlighted card cho active scenario */
+  .major-card.in-progress-card {
+    border-color: var(--lumina-500);
+    box-shadow: 0 0 0 2px var(--lumina-500), var(--shadow-md);
+  }
+
+  .major-card.in-progress-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 0 2px var(--lumina-500), var(--shadow-xl);
+  }
+
+  /* Faded for completed (still clickable for re-read) */
+  .major-card.completed-card {
+    opacity: 0.95;
+  }
+
+  .major-body {
+    padding: var(--space-5);
+  }
+
+  .major-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+    font-size: 12px;
+    color: var(--ink-500);
+  }
+
+  .major-meta-divider { color: var(--ink-200); }
+
+  .major-tagline {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 15px;
+    color: var(--ink-700);
+    margin-bottom: var(--space-4);
+    line-height: 1.5;
+  }
+
+  .major-section {
+    margin-bottom: var(--space-3);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--ink-100);
+  }
+
+  .major-section:last-of-type {
+    border-bottom: none;
+  }
+
+  .major-section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-400);
+    margin-bottom: var(--space-2);
+  }
+
+  .check-list {
+    list-style: none;
+    font-size: 13px;
+    color: var(--ink-700);
+  }
+
+  .check-list li {
+    padding: 2px 0;
+    display: flex;
+    gap: 6px;
+  }
+
+  .check-list li.warn { color: var(--signal-stress); }
+
+  .major-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+  }
+
+  .match-score {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-top: var(--space-3);
+    font-size: 13px;
+    color: var(--lumina-700);
+    font-weight: 500;
+  }
+
+  /* Help section */
+  .help-section {
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    text-align: center;
+    margin-bottom: var(--space-6);
+  }
+
+  .help-title {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--ink-900);
+    margin-bottom: var(--space-3);
+  }
+
+  .help-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+    text-align: left;
+  }
+
+  .help-card {
+    padding: var(--space-4);
+    background: var(--paper-200);
+    border-radius: var(--radius-md);
+  }
+
+  .help-card-icon {
+    font-size: 24px;
+    margin-bottom: var(--space-2);
+  }
+
+  .help-card-title {
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+    color: var(--ink-900);
+  }
+
+  .help-card-desc {
+    font-size: 13px;
+    color: var(--ink-500);
+    margin-bottom: var(--space-3);
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div id="header"></div>
+
+<div class="container">
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1 class="hero-title">Chào Minh, <em>khám phá tiếp</em><br>ngành nào hôm nay?</h1>
+    <p class="hero-subtitle">
+      Bạn đã hoàn thành Software Engineering. Marketing đang trong tiến trình. Tiếp tục journey hoặc thử ngành mới.
+    </p>
+
+    <div class="hero-cta">
+      <button class="btn btn-primary btn-lg" onclick="window.location.href='06-hub.html'">📢 Tiếp tục Marketing (Day 3/7)</button>
+      <button class="btn btn-secondary btn-lg">📖 Xem tất cả 12 ngành</button>
+    </div>
+
+    <div class="trust-row">
+      <span><strong>⭐ 4.6/5</strong> • 8,234 học sinh</span>
+      <span class="trust-divider">·</span>
+      <span><strong>🎓 95%</strong> tìm hướng đi</span>
+      <span class="trust-divider">·</span>
+      <span><strong>👨‍👩‍👧 87%</strong> phụ huynh tin tưởng</span>
+    </div>
+  </section>
+
+  <!-- Recommendations -->
+  <section class="recs-section">
+    <div class="recs-header">
+      ✨ Gợi ý cho bạn — dựa trên SE journey (78/100) và Marketing in progress
+    </div>
+    <div class="recs-grid">
+      <div class="rec-card">
+        <div class="rec-tier">🥇 Predicted match</div>
+        <div class="rec-name">Data Science</div>
+        <div class="rec-match">Match: 82%</div>
+        <button class="btn btn-primary btn-sm" style="width: 100%;">Try Day 1 Free</button>
+      </div>
+      <div class="rec-card">
+        <div class="rec-tier">🥈 Lân cận</div>
+        <div class="rec-name">Research / Academic</div>
+        <div class="rec-match">Match: 75%</div>
+        <button class="btn btn-secondary btn-sm" style="width: 100%;">Xem chi tiết</button>
+      </div>
+      <div class="rec-card">
+        <div class="rec-tier">🥉 Khám phá</div>
+        <div class="rec-name">UX Design</div>
+        <div class="rec-match">Match: 65%</div>
+        <button class="btn btn-secondary btn-sm" style="width: 100%;">Xem chi tiết</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <div class="filter-chips">
+      <span class="filter-chip active">Tất cả</span>
+      <span class="filter-chip">🖥 Tech</span>
+      <span class="filter-chip">🏥 Healthcare</span>
+      <span class="filter-chip">💼 Business</span>
+      <span class="filter-chip">🎨 Creative</span>
+      <span class="filter-chip">⚖ Legal</span>
+    </div>
+    <div style="font-size: 13px; color: var(--ink-500);">
+      Sort: <strong style="color: var(--ink-900);">Recommended</strong>
+    </div>
+  </div>
+
+  <!-- Major Cards Grid -->
+  <div class="majors-grid">
+
+    <!-- Marketing Card (IN PROGRESS - Active) -->
+    <div class="major-card in-progress-card" onclick="window.location.href='06-hub.html'">
+      <div class="major-hero marketing">
+        <span class="in-progress-badge">In Progress</span>
+        <div class="major-icon">📢</div>
+        <div class="major-name">Marketing</div>
+        <div class="major-name-vi">Tiếp thị & Truyền thông</div>
+      </div>
+      <div class="major-body">
+        <div class="major-meta">
+          <span>⭐ 4.5</span>
+          <span class="major-meta-divider">·</span>
+          <span>Day 3 / 7</span>
+          <span class="major-meta-divider">·</span>
+          <span style="color: var(--lumina-700); font-weight: 600;">42% complete</span>
+        </div>
+        <p class="major-tagline">"Quản lý campaign trị giá hàng tỷ đồng. Sống với ROAS, CAC, LTV — và CEO."</p>
+
+        <div class="major-section">
+          <div class="major-section-label">Today's theme</div>
+          <ul class="check-list">
+            <li>🔥 Day 3: "Crisis Hits" — Campaign ROAS giảm 40%</li>
+            <li>📊 Phân tích data với Anh Tùng</li>
+            <li>💼 Quyết định trước khi CEO nổi giận</li>
+          </ul>
+        </div>
+
+        <div class="major-section">
+          <div class="major-section-label">Progress</div>
+          <div style="background: var(--ink-100); height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 6px;">
+            <div style="background: linear-gradient(90deg, var(--lumina-300), var(--lumina-500)); height: 100%; width: 42%;"></div>
+          </div>
+          <ul class="check-list">
+            <li>✓ Day 1-2 hoàn thành</li>
+            <li>● Day 3 đang diễn ra</li>
+            <li>○ Còn 4 ngày nữa</li>
+          </ul>
+        </div>
+
+        <div class="major-actions">
+          <button class="btn btn-primary" onclick="event.stopPropagation(); window.location.href='06-hub.html'">▶ Tiếp tục Day 3</button>
+          <button class="btn btn-secondary" onclick="event.stopPropagation(); window.location.href='07-workspace.html'">Vào Workspace ngay</button>
+        </div>
+
+        <div class="match-score">⚡ Last active: 2 hours ago</div>
+      </div>
+    </div>
+
+    <!-- SE Card (COMPLETED) -->
+    <div class="major-card completed-card" onclick="window.location.href='10-final-report.html'">
+      <div class="major-hero">
+        <span class="completed-badge">✓ Completed</span>
+        <div class="major-icon">🖥</div>
+        <div class="major-name">Software Engineering</div>
+        <div class="major-name-vi">Kỹ thuật Phần mềm</div>
+      </div>
+      <div class="major-body">
+        <div class="major-meta">
+          <span>⭐ 4.7</span>
+          <span class="major-meta-divider">·</span>
+          <span>Hoàn thành 2 tuần trước</span>
+          <span class="major-meta-divider">·</span>
+          <span style="color: var(--lumina-700); font-weight: 600;">78/100</span>
+        </div>
+        <p class="major-tagline">"Sống thử cuộc đời của một dev từ junior đến senior trong 7 ngày."</p>
+
+        <div class="major-section">
+          <div class="major-section-label">Your ending</div>
+          <ul class="check-list">
+            <li style="font-family: var(--font-display); font-style: italic; font-size: 15px; color: var(--signal-alert);">⚔️ The Fighter</li>
+            <li style="color: var(--ink-500); font-size: 12px;">"Bạn có thể làm được — nhưng phải trả giá."</li>
+          </ul>
+        </div>
+
+        <div class="major-section">
+          <div class="major-section-label">Key insights</div>
+          <ul class="check-list">
+            <li>✓ Strong systematic thinking (10/10)</li>
+            <li>✓ Tolerance với áp lực kỹ thuật</li>
+            <li>⚠ Stress với team conflicts</li>
+          </ul>
+        </div>
+
+        <div class="major-section">
+          <div class="major-section-label">Best for you</div>
+          <ul class="check-list">
+            <li>• Individual Contributor track</li>
+            <li>• Backend/Systems specialization</li>
+          </ul>
+        </div>
+
+        <div class="major-actions">
+          <button class="btn btn-primary" onclick="event.stopPropagation(); window.location.href='10-final-report.html'">📊 Xem Final Report</button>
+          <button class="btn btn-secondary" onclick="event.stopPropagation(); window.location.href='11-portfolio.html'">📁 Xem trong Portfolio</button>
+        </div>
+
+        <div class="match-score">💡 Compatibility: 78/100 (validated)</div>
+      </div>
+    </div>
+
+    <!-- Medical Card (Available to try) -->
+    <div class="major-card" onclick="alert('Demo: Trong production sẽ mở payment flow cho Medical scenario')">
+      <div class="major-hero medical">
+        <div class="major-icon">🏥</div>
+        <div class="major-name">Medical</div>
+        <div class="major-name-vi">Y khoa</div>
+      </div>
+      <div class="major-body">
+        <div class="major-meta">
+          <span>⭐ 4.6</span>
+          <span class="major-meta-divider">·</span>
+          <span>389 reviews</span>
+          <span class="major-meta-divider">·</span>
+          <span>★★★★★ Khó: 5/5</span>
+        </div>
+        <p class="major-tagline">"Trải nghiệm một ca trực Cấp cứu, chẩn đoán và ra quyết định trong áp lực cao."</p>
+
+        <div class="major-section">
+          <div class="major-section-label">Hợp với bạn nếu</div>
+          <ul class="check-list">
+            <li>✓ Chịu đựng stress cao</li>
+            <li>✓ Detail-oriented</li>
+            <li>✓ Empathy với patients</li>
+          </ul>
+        </div>
+
+        <div class="major-section">
+          <div class="major-section-label">⚠ Thử thách</div>
+          <ul class="check-list">
+            <li class="warn">⚠ Ethical dilemmas (end-of-life)</li>
+            <li class="warn">⚠ Long study path (6+ năm)</li>
+          </ul>
+        </div>
+
+        <div class="major-section">
+          <div class="major-section-label">Career paths</div>
+          <ul class="check-list">
+            <li>• ER Doctor, Surgeon</li>
+            <li>• Specialist, Researcher</li>
+          </ul>
+        </div>
+
+        <div class="major-actions">
+          <button class="btn btn-primary" onclick="event.stopPropagation(); alert('Demo: Trong production sẽ mở Day 1 free cho Medical')">Try Day 1 Free</button>
+          <button class="btn btn-secondary" onclick="event.stopPropagation(); alert('Demo: Trong production sẽ mở payment flow')">Start Full Journey · $19.99</button>
+        </div>
+
+        <div class="match-score" style="color: var(--ink-500);">💡 Predicted match: 65% (chưa test)</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Help Section -->
+  <section class="help-section">
+    <h2 class="help-title">Chưa biết chọn ngành nào?</h2>
+    <p class="text-muted">Chúng tôi có nhiều cách giúp bạn khám phá:</p>
+
+    <div class="help-cards">
+      <div class="help-card">
+        <div class="help-card-icon">🎯</div>
+        <div class="help-card-title">Find Your Fit Quiz</div>
+        <div class="help-card-desc">10 phút trắc nghiệm AI để tìm ngành phù hợp.</div>
+        <button class="btn btn-primary btn-sm" style="width: 100%;">Start Quiz</button>
+      </div>
+      <div class="help-card">
+        <div class="help-card-icon">💬</div>
+        <div class="help-card-title">Talk to AI Advisor</div>
+        <div class="help-card-desc">Chat với AI để khám phá interest và goals.</div>
+        <button class="btn btn-ghost btn-sm" style="width: 100%;">Coming Soon</button>
+      </div>
+      <div class="help-card">
+        <div class="help-card-icon">📖</div>
+        <div class="help-card-title">Read FAQ</div>
+        <div class="help-card-desc">Câu hỏi phổ biến về việc chọn ngành.</div>
+        <button class="btn btn-secondary btn-sm" style="width: 100%;">View FAQ</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="../shared/navigation.js"></script>
+<script>
+  // Inject header
+  document.getElementById('header').innerHTML = buildHeader({
+    breadcrumb: ['Home', 'Gateway'],
+    rightActions: ['notification', 'avatar']
+  });
+
+  function goToHub() {
+    window.location.href = '06-hub.html';
+  }
+
+  // Filter chips
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

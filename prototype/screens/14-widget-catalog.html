@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMINA — Widget Catalog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/design-system.css">
+<style>
+  body { background: var(--paper-200); }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: calc(100vh - 56px);
+  }
+
+  .filters {
+    background: var(--paper-100);
+    border-right: 1px solid var(--ink-100);
+    padding: var(--space-4);
+    overflow-y: auto;
+    position: sticky;
+    top: 56px;
+    height: calc(100vh - 56px);
+  }
+
+  .filter-section { margin-bottom: var(--space-4); padding-bottom: var(--space-3); border-bottom: 1px solid var(--ink-100); }
+  .filter-section:last-child { border: none; }
+
+  .filter-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-500);
+    margin-bottom: var(--space-2);
+  }
+
+  .filter-option {
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--ink-700);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2px;
+  }
+
+  .filter-option:hover { background: var(--paper-200); }
+
+  .filter-option.active {
+    background: var(--lumina-50);
+    color: var(--lumina-700);
+    font-weight: 500;
+  }
+
+  .filter-count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-400);
+  }
+
+  /* Main */
+  .catalog-main { padding: var(--space-5); }
+
+  .catalog-toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  .search-box {
+    flex: 1;
+    max-width: 400px;
+    padding: 8px 14px;
+    background: var(--paper-100);
+    border: 1px solid var(--ink-200);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+  }
+
+  .results-count {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-500);
+  }
+
+  /* Widget grid */
+  .widgets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .widget-card {
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all var(--transition-base);
+  }
+
+  .widget-card:hover {
+    border-color: var(--lumina-300);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .widget-thumb {
+    height: 140px;
+    background: linear-gradient(135deg, var(--ink-900), var(--ink-700));
+    color: var(--paper-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 56px;
+    position: relative;
+  }
+
+  .widget-thumb.medical { background: linear-gradient(135deg, #3D2A2A, #5A3838); }
+  .widget-thumb.marketing { background: linear-gradient(135deg, #2A2A3D, #38385A); }
+  .widget-thumb.generic { background: linear-gradient(135deg, var(--ink-700), var(--ink-500)); }
+
+  .widget-domain-tag {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 3px 8px;
+    background: rgba(255,255,255,0.15);
+    color: var(--paper-100);
+    border-radius: 10px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+  }
+
+  .widget-info { padding: var(--space-4); }
+
+  .widget-name {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--ink-900);
+    margin-bottom: 4px;
+  }
+
+  .widget-tagline {
+    font-size: 12px;
+    color: var(--ink-500);
+    margin-bottom: var(--space-3);
+    font-style: italic;
+  }
+
+  .widget-meta {
+    display: flex;
+    gap: var(--space-3);
+    font-size: 11px;
+    color: var(--ink-500);
+    font-family: var(--font-mono);
+    margin-bottom: var(--space-3);
+  }
+
+  .widget-meta strong { color: var(--ink-700); }
+
+  .widget-stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--ink-100);
+    font-size: 11px;
+    color: var(--ink-500);
+  }
+
+  .widget-rating {
+    color: var(--lumina-700);
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<div id="header"></div>
+
+<div class="layout">
+
+  <aside class="filters">
+    <div class="filter-section">
+      <div class="filter-title">Domain</div>
+      <div class="filter-option active">All <span class="filter-count">18</span></div>
+      <div class="filter-option">🖥 Software Eng <span class="filter-count">5</span></div>
+      <div class="filter-option">🏥 Medical <span class="filter-count">3</span></div>
+      <div class="filter-option">📢 Marketing <span class="filter-count">4</span></div>
+      <div class="filter-option">🌐 Generic <span class="filter-count">6</span></div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-title">Category</div>
+      <div class="filter-option">Code editors</div>
+      <div class="filter-option">Dashboards</div>
+      <div class="filter-option">Communication</div>
+      <div class="filter-option">Forms</div>
+      <div class="filter-option">Visualizations</div>
+      <div class="filter-option">Simulations</div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-title">Status</div>
+      <div class="filter-option active">● Production <span class="filter-count">14</span></div>
+      <div class="filter-option">○ Staging <span class="filter-count">3</span></div>
+      <div class="filter-option">○ Draft <span class="filter-count">1</span></div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-title">Coverage Gaps</div>
+      <div style="padding: 10px; background: rgba(217, 142, 63, 0.08); border-radius: 6px; font-size: 12px; color: var(--ink-700); line-height: 1.5;">
+        ⚠ Legal: 0 widgets<br>
+        ⚠ Finance: 0 widgets<br>
+        ⚠ Design: 2 (only)
+      </div>
+    </div>
+  </aside>
+
+  <main class="catalog-main">
+
+    <div class="catalog-toolbar">
+      <input type="text" class="search-box" placeholder="🔍 Search widgets..." />
+      <div class="results-count">18 widgets · 14 in production</div>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 12px; color: var(--ink-500);">Sort:</span>
+        <select style="padding: 4px 10px; border: 1px solid var(--ink-200); border-radius: 4px; font-size: 12px;">
+          <option>Most used</option>
+          <option>Recently updated</option>
+          <option>Highest rated</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="widgets-grid">
+
+      <!-- SE Widgets -->
+      <div class="widget-card">
+        <div class="widget-thumb">
+          <div class="widget-domain-tag">SE</div>
+          🖥
+        </div>
+        <div class="widget-info">
+          <div class="widget-name">CodeSpace</div>
+          <div class="widget-tagline">"Inspired by VS Code"</div>
+          <div class="widget-meta">
+            <span><strong>v2.1.3</strong></span>
+            <span><strong>47KB</strong></span>
+            <span><strong>95ms</strong></span>
+          </div>
+          <div class="widget-stats">
+            <span class="widget-rating">★ 4.7</span>
+            <span>Used in 12 scenarios</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-card">
+        <div class="widget-thumb">
+          <div class="widget-domain-tag">SE</div>
+          🔍
+        </div>
+        <div class="widget-info">
+          <div class="widget-name">LogHunter</div>
+          <div class="widget-tagline">"Production log analysis"</div>
+          <div class="widget-meta">
+            <span><strong>v1.2</strong></span>
+            <span><strong>32KB</strong></span>
+            <span><strong>145ms</strong></span>
+          </div>
+          <div class="widget-stats">
+            <span class="widget-rating">★ 4.5</span>
+            <span>Used in 8 scenarios</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-card">
+        <div class="widget-thumb">
+          <div class="widget-domain-tag">SE</div>
+          📋
+        </div>
+        <div class="widget-info">
+          <div class="widget-name">TaskBoard</div>
+          <div class="widget-tagline">"Kanban board cho dev"</div>
+          <div class="widget-meta">
+            <span><strong>v1.0</strong></span>
+            <span><strong>28KB</strong></span>
+            <span><strong>67ms</strong></span>
+          </div>
+          <div class="widget-stats">
+            <span class="widget-rating">★ 4.6</span>
+            <span>Used in 7 scenarios</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Medical Widgets -->
+      <div class="widget-card">
+        <div class="widget-thumb medical">
+          <div class="widget-domain-tag">Medical</div>
+          🩺
+        </div>
+        <div class="widget-info">
+          <div class="widget-name">PatientMonitor</div>
+          <div class="widget-tagline">"Real-time vital signs"</div>
+          <div class="widget-meta">
+            <span><strong>v0.9</strong></span>
+            <span><strong>52KB</strong></span>
+            <span style="color: var(--signal-alert);"><strong>234ms ⚠</strong></span>
+          </div>
+          <div class="widget-stats">
+            <span class="widget-rating">★ 4.3</span>
+            <span>Used in 3 scenarios</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-card">
+        <div class="widget-thumb medical">
+          <div class="widget-domain-tag">Medical</div>
+          💊
+        </div>
+        <div class="widget-info">
+          <div class="widget-name">PrescriptionForm</div>
+          <div class="widget-tagline">"Drug ordering với safety checks"</div>
+          <div class="widget-meta">
+            <span><strong>v0.7</strong></span>
+            <span><strong>28KB</strong></span>
+            <span><strong>89ms</strong></span>
+          </div>
+          <div class="widget-stats">
+            <span class="widget-rating">★ 4.4</span>
+            <span>Used in 2 scenarios</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-card">
+        <div class="widget-thumb medical">
+          <div class="widget-domain-tag">Medical</div>
+          🫀
+        </div>
+        <div class="widget-info">
+          <div class="widget-name">AnatomyExplorer</div>
+          <div class="widget-tagline">"3D anatomy reference"</div>
+          <div class="widget-meta">
+            <span><strong>v0.5</strong></span>
+            <span><strong>180KB</strong></span>
+            <span><strong>156ms</strong></span>
+          </div>
+          <div class="widget-stats">
+            <span class="widget-rating">★ 4.0</span>
+            <span>Used in 1 scenario</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Marketing -->
+      <div class="widget-card">
+        <div class="widget-thumb marketing">
+          <div class="widget-domain-tag">Marketing</div>
+          📊
+        </div>
+        <div class="widget-info">
+          <div class="widget-name">CampaignDashboard</div>
+          <div class="widget-tagline">"KPIs và anomaly detection"</div>
+          <div class="widget-meta">
+            <span><strong>v1.4</strong></span>
+            <span><strong>56KB</strong></span>
+            <span><strong>156ms</strong></span>
+          </div>
+          <div class="widget-stats">
+            <span class="widget-rating">★ 4.6</span>
+            <span>Used in 4 scenarios</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-card">
+        <div class="widget-thumb marketing">
+          <div class="widget-domain-tag">Marketing</div>
+          🎯
+        </div>
+        <div class="widget-info">
+          <div class="widget-name">AudienceSegmentor</div>
+          <div class="widget-tagline">"Target audience visualization"</div>
+          <div class="widget-meta">
+            <span><strong>v1.0</strong></span>
+            <span><strong>42KB</strong></span>
+            <span><strong>112ms</strong></span>
+          </div>
+          <div class="widget-stats">
+            <span class="widget-rating">★ 4.2</span>
+            <span>Used in 3 scenarios</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-card">
+        <div class="widget-thumb marketing">
+          <div class="widget-domain-tag">Marketing</div>
+          🧪
+        </div>
+        <div class="widget-info">
+          <div class="widget-name">ABTestSimulator</div>
+          <div class="widget-tagline">"A/B test với statistical significance"</div>
+          <div class="widget-meta">
+            <span><strong>v0.8</strong></span>
+            <span><strong>38KB</strong></span>
+            <span><strong>98ms</strong></span>
+          </div>
+          <div class="widget-stats">
+            <span class="widget-rating">★ 4.1</span>
+            <span>Used in 2 scenarios</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generic -->
+      <div class="widget-card">
+        <div class="widget-thumb generic">
+          <div class="widget-domain-tag">Generic</div>
+          💬
+        </div>
+        <div class="widget-info">
+          <div class="widget-name">TeamChat</div>
+          <div class="widget-tagline">"Multi-persona chat (cross-domain)"</div>
+          <div class="widget-meta">
+            <span><strong>v3.0</strong></span>
+            <span><strong>34KB</strong></span>
+            <span><strong>78ms</strong></span>
+          </div>
+          <div class="widget-stats">
+            <span class="widget-rating">★ 4.8 ★</span>
+            <span>Used in 18 scenarios</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-card">
+        <div class="widget-thumb generic">
+          <div class="widget-domain-tag">Generic</div>
+          📅
+        </div>
+        <div class="widget-info">
+          <div class="widget-name">CalendarView</div>
+          <div class="widget-tagline">"Schedule & deadlines"</div>
+          <div class="widget-meta">
+            <span><strong>v1.2</strong></span>
+            <span><strong>22KB</strong></span>
+            <span><strong>56ms</strong></span>
+          </div>
+          <div class="widget-stats">
+            <span class="widget-rating">★ 4.5</span>
+            <span>Used in 6 scenarios</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-card">
+        <div class="widget-thumb generic">
+          <div class="widget-domain-tag">Generic</div>
+          ⏱
+        </div>
+        <div class="widget-info">
+          <div class="widget-name">Timer</div>
+          <div class="widget-tagline">"Pressure timer cho deadlines"</div>
+          <div class="widget-meta">
+            <span><strong>v1.1</strong></span>
+            <span><strong>8KB</strong></span>
+            <span><strong>12ms</strong></span>
+          </div>
+          <div class="widget-stats">
+            <span class="widget-rating">★ 4.4</span>
+            <span>Used in 9 scenarios</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="../shared/navigation.js"></script>
+<script>
+  document.getElementById('header').innerHTML = buildHeader({
+    breadcrumb: ['Operations', 'Widget Catalog'],
+    rightActions: ['notification', 'avatar']
+  });
+  document.querySelectorAll('.filter-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const section = opt.parentElement;
+      section.querySelectorAll('.filter-option').forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

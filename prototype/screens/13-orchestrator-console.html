@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMINA — Orchestrator Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/design-system.css">
+<style>
+  body { background: var(--paper-200); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+  .main-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 280px 1fr 400px;
+    overflow: hidden;
+  }
+
+  /* Scenarios sidebar */
+  .scenarios-sidebar {
+    background: var(--paper-100);
+    border-right: 1px solid var(--ink-100);
+    overflow-y: auto;
+    padding: var(--space-4);
+  }
+
+  .sidebar-section { margin-bottom: var(--space-4); }
+
+  .sidebar-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-400);
+    margin-bottom: var(--space-2);
+  }
+
+  .scenario-item {
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    margin-bottom: 4px;
+    transition: background var(--transition-fast);
+    border-left: 3px solid transparent;
+  }
+
+  .scenario-item:hover { background: var(--paper-200); }
+
+  .scenario-item.selected {
+    background: var(--lumina-50);
+    border-left-color: var(--lumina-500);
+  }
+
+  .scenario-item-name {
+    font-size: 13px;
+    color: var(--ink-900);
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  .scenario-item-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-500);
+  }
+
+  .scenario-item.warning .scenario-item-meta {
+    color: var(--signal-alert);
+  }
+
+  /* Center: Configuration */
+  .config-area {
+    background: var(--paper-200);
+    overflow-y: auto;
+    padding: var(--space-5);
+  }
+
+  .config-tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: var(--space-4);
+    background: var(--paper-100);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    width: fit-content;
+  }
+
+  .config-tab {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--ink-500);
+    cursor: pointer;
+  }
+
+  .config-tab.active {
+    background: var(--ink-900);
+    color: var(--paper-100);
+    font-weight: 500;
+  }
+
+  .scenario-header {
+    background: var(--paper-100);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    margin-bottom: var(--space-4);
+  }
+
+  .scenario-name-large {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--ink-900);
+    margin-bottom: 4px;
+  }
+
+  .active-personas {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+  }
+
+  .persona-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: var(--paper-200);
+    border-radius: 14px;
+    font-size: 12px;
+    color: var(--ink-700);
+  }
+
+  .persona-pill::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .persona-pill.alpha::before { background: var(--ink-700); }
+  .persona-pill.chip::before { background: var(--lumina-500); }
+  .persona-pill.boss::before { background: var(--signal-stress); }
+  .persona-pill.director::before { background: var(--signal-focus); }
+
+  /* Event card */
+  .event-card {
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: var(--space-3);
+  }
+
+  .event-header {
+    padding: var(--space-3) var(--space-4);
+    background: var(--ink-900);
+    color: var(--paper-100);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .event-name {
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .event-name strong { color: var(--lumina-300); }
+
+  /* Priority table */
+  .priority-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .priority-table th, .priority-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--ink-100);
+    font-size: 13px;
+  }
+
+  .priority-table th {
+    background: var(--paper-200);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--ink-500);
+    font-weight: 500;
+  }
+
+  .priority-bar-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .priority-bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--ink-100);
+    border-radius: 3px;
+    overflow: hidden;
+    max-width: 80px;
+  }
+
+  .priority-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+  }
+
+  .priority-value {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-700);
+    min-width: 32px;
+  }
+
+  .priority-value.high { color: var(--lumina-700); font-weight: 600; }
+  .priority-value.zero { color: var(--ink-300); }
+
+  .delay-badge {
+    padding: 2px 6px;
+    background: var(--paper-200);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-600);
+  }
+
+  .tone-tag {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+  }
+
+  .tone-tag.frustrated { background: rgba(201, 88, 74, 0.15); color: var(--signal-stress); }
+  .tone-tag.supportive { background: var(--lumina-50); color: var(--lumina-700); }
+  .tone-tag.demanding { background: rgba(217, 142, 63, 0.15); color: var(--signal-alert); }
+  .tone-tag.silent { background: var(--ink-100); color: var(--ink-400); }
+  .tone-tag.override { background: var(--ink-900); color: var(--lumina-300); }
+
+  .preview-box {
+    padding: var(--space-3);
+    background: var(--paper-200);
+    border-top: 1px solid var(--ink-100);
+    font-size: 12px;
+    color: var(--ink-700);
+    line-height: 1.6;
+  }
+
+  .preview-box strong { color: var(--ink-900); }
+
+  /* Right: Live Test */
+  .test-panel {
+    background: var(--ink-900);
+    color: var(--paper-100);
+    border-left: 1px solid var(--ink-100);
+    overflow-y: auto;
+    padding: var(--space-4);
+  }
+
+  .test-header {
+    margin-bottom: var(--space-4);
+  }
+
+  .test-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--lumina-300);
+    margin-bottom: 4px;
+  }
+
+  .test-section { margin-bottom: var(--space-4); }
+
+  .test-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    color: var(--ink-400);
+    margin-bottom: 6px;
+  }
+
+  .test-select {
+    width: 100%;
+    padding: 6px 10px;
+    background: var(--ink-800);
+    border: 1px solid var(--ink-700);
+    color: var(--paper-100);
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  .test-context {
+    padding: 8px 10px;
+    background: var(--ink-800);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1.6;
+    color: var(--ink-200);
+  }
+
+  .test-result-card {
+    background: var(--ink-800);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    border-left: 2px solid;
+  }
+
+  .test-result-card.alpha { border-left-color: var(--ink-200); }
+  .test-result-card.chip { border-left-color: var(--lumina-500); }
+  .test-result-card.boss { border-left-color: var(--signal-stress); }
+
+  .test-result-time {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--lumina-300);
+    margin-bottom: 4px;
+  }
+
+  .test-result-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--paper-100);
+    margin-bottom: 4px;
+  }
+
+  .test-result-msg {
+    font-size: 11px;
+    color: var(--ink-200);
+    line-height: 1.5;
+    margin-bottom: 4px;
+  }
+
+  .test-result-meta {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .test-meta-pill {
+    padding: 2px 6px;
+    background: var(--ink-700);
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--ink-300);
+  }
+
+  .test-meta-pill.success { color: var(--signal-calm); }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--ink-700);
+    font-size: 11px;
+    color: var(--ink-300);
+  }
+
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row strong { color: var(--paper-100); }
+
+  /* Status bar */
+  .status-bar {
+    height: 28px;
+    flex-shrink: 0;
+    background: var(--ink-900);
+    color: var(--paper-100);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--space-4);
+    gap: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: 10px;
+  }
+
+  .status-bar .alert {
+    color: var(--signal-alert);
+  }
+</style>
+</head>
+<body>
+
+<div id="header"></div>
+
+<div class="main-grid">
+
+  <!-- Sidebar -->
+  <aside class="scenarios-sidebar">
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Scenarios</div>
+
+      <div class="scenario-item">
+        <div class="scenario-item-name">SE Day 1 (Onboard)</div>
+        <div class="scenario-item-meta">3 personas · ✓ healthy</div>
+      </div>
+      <div class="scenario-item warning">
+        <div class="scenario-item-name">SE Day 3 (Crisis)</div>
+        <div class="scenario-item-meta">⚠ Pile-on detected</div>
+      </div>
+      <div class="scenario-item">
+        <div class="scenario-item-name">SE Day 7 (Defense)</div>
+        <div class="scenario-item-meta">3 personas · ✓ healthy</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Medical</div>
+      <div class="scenario-item">
+        <div class="scenario-item-name">Medical ER Day 3</div>
+        <div class="scenario-item-meta">3 personas · ✓ healthy</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Marketing</div>
+      <div class="scenario-item selected">
+        <div class="scenario-item-name">Marketing Day 5 (Crisis)</div>
+        <div class="scenario-item-meta">⚠ Reviewing config</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">⚠ Active Alerts (2)</div>
+      <div style="padding: 10px; background: rgba(217, 142, 63, 0.08); border-radius: 6px; border-left: 3px solid var(--signal-alert); margin-bottom: 8px;">
+        <div style="font-size: 12px; color: var(--ink-900); font-weight: 500;">SE Day 3</div>
+        <div style="font-size: 11px; color: var(--ink-500);">Pile-on event @ minute 15</div>
+      </div>
+      <div style="padding: 10px; background: rgba(217, 142, 63, 0.08); border-radius: 6px; border-left: 3px solid var(--signal-alert);">
+        <div style="font-size: 12px; color: var(--ink-900); font-weight: 500;">Marketing Day 5</div>
+        <div style="font-size: 11px; color: var(--ink-500);">Chip silent 18 min</div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- Center -->
+  <main class="config-area">
+
+    <div class="config-tabs">
+      <span class="config-tab active">⚡ Priority Matrix</span>
+      <span class="config-tab">📋 Shared Context</span>
+      <span class="config-tab">🎭 Patterns</span>
+      <span class="config-tab">🌐 Platform Rules</span>
+    </div>
+
+    <div class="scenario-header">
+      <div class="scenario-name-large">Marketing Day 5 — Crisis Management</div>
+      <div style="font-size: 13px; color: var(--ink-500);">v0.8 · Last edited 2 hours ago</div>
+
+      <div class="active-personas">
+        <div class="persona-pill alpha">Anh Tùng (Director)</div>
+        <div class="persona-pill chip">Chip (Buddy)</div>
+        <div class="persona-pill boss">Chị Mai (Client)</div>
+        <div class="persona-pill director">Story Director</div>
+      </div>
+    </div>
+
+    <h3 style="font-family: var(--font-display); font-size: 18px; color: var(--ink-900); margin-bottom: var(--space-3);">Event-based Priority Matrix</h3>
+
+    <!-- Event 1 -->
+    <div class="event-card">
+      <div class="event-header">
+        <span class="event-name">EVENT: <strong>student_wrong_decision</strong></span>
+        <button class="btn btn-secondary btn-sm" style="font-size: 11px;">▶ Test</button>
+      </div>
+
+      <table class="priority-table">
+        <thead>
+          <tr>
+            <th>Persona</th>
+            <th>Priority</th>
+            <th>Delay</th>
+            <th>Tone</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Anh Tùng</strong></td>
+            <td>
+              <div class="priority-bar-cell">
+                <div class="priority-bar-track"><div class="priority-bar-fill" style="background: var(--lumina-500); width: 90%;"></div></div>
+                <span class="priority-value high">0.9</span>
+              </div>
+            </td>
+            <td><span class="delay-badge">0s</span></td>
+            <td><span class="tone-tag frustrated">frustrated_business</span></td>
+          </tr>
+          <tr>
+            <td><strong>Chip</strong></td>
+            <td>
+              <div class="priority-bar-cell">
+                <div class="priority-bar-track"><div class="priority-bar-fill" style="background: var(--ink-300); width: 30%;"></div></div>
+                <span class="priority-value">0.3</span>
+              </div>
+            </td>
+            <td><span class="delay-badge">4s</span></td>
+            <td><span class="tone-tag supportive">supportive</span></td>
+          </tr>
+          <tr>
+            <td><strong>Chị Mai</strong></td>
+            <td>
+              <div class="priority-bar-cell">
+                <div class="priority-bar-track"><div class="priority-bar-fill" style="background: var(--signal-alert); width: 50%;"></div></div>
+                <span class="priority-value">0.5</span>
+              </div>
+            </td>
+            <td><span class="delay-badge">2s</span></td>
+            <td><span class="tone-tag demanding">demanding</span></td>
+          </tr>
+          <tr>
+            <td><strong>Story Director</strong></td>
+            <td>
+              <div class="priority-bar-cell">
+                <div class="priority-bar-track"><div class="priority-bar-fill" style="background: var(--ink-200); width: 0%;"></div></div>
+                <span class="priority-value zero">0.0</span>
+              </div>
+            </td>
+            <td>—</td>
+            <td><span class="tone-tag silent">silent</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="preview-box">
+        <strong>Preview:</strong> Anh Tùng speaks first (T+0). Chị Mai 2s later (demanding). Chip 4s later (recovery). Story Director silent.
+      </div>
+    </div>
+
+    <!-- Event 2 -->
+    <div class="event-card">
+      <div class="event-header">
+        <span class="event-name">EVENT: <strong>student_stress_high (>85%)</strong></span>
+        <button class="btn btn-secondary btn-sm" style="font-size: 11px;">▶ Test</button>
+      </div>
+
+      <table class="priority-table">
+        <tbody>
+          <tr>
+            <td><strong>Anh Tùng</strong></td>
+            <td><div class="priority-bar-cell"><div class="priority-bar-track"></div><span class="priority-value zero">0.0</span></div></td>
+            <td>—</td>
+            <td><span class="tone-tag silent">silent</span></td>
+          </tr>
+          <tr>
+            <td><strong>Chip</strong></td>
+            <td>
+              <div class="priority-bar-cell">
+                <div class="priority-bar-track"><div class="priority-bar-fill" style="background: var(--lumina-500); width: 95%;"></div></div>
+                <span class="priority-value high">0.95</span>
+              </div>
+            </td>
+            <td><span class="delay-badge">0s</span></td>
+            <td><span class="tone-tag supportive">calm</span></td>
+          </tr>
+          <tr>
+            <td><strong>Chị Mai</strong></td>
+            <td><div class="priority-bar-cell"><div class="priority-bar-track"></div><span class="priority-value zero">0.0</span></div></td>
+            <td>—</td>
+            <td><span class="tone-tag silent">silent</span></td>
+          </tr>
+          <tr>
+            <td><strong>Story Director</strong></td>
+            <td>
+              <div class="priority-bar-cell">
+                <div class="priority-bar-track"><div class="priority-bar-fill" style="background: var(--signal-focus); width: 70%;"></div></div>
+                <span class="priority-value">0.7</span>
+              </div>
+            </td>
+            <td><span class="delay-badge">10s</span></td>
+            <td><span class="tone-tag override">trigger</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="preview-box">
+        <strong>Preview:</strong> Chip intervenes immediately. Story Director may trigger early-exit option after 10s if stress sustains.
+      </div>
+    </div>
+
+    <!-- Event 3 -->
+    <div class="event-card">
+      <div class="event-header">
+        <span class="event-name">EVENT: <strong>key_story_event (Day 5 climax)</strong></span>
+      </div>
+
+      <table class="priority-table">
+        <tbody>
+          <tr>
+            <td><strong>Story Director</strong></td>
+            <td>
+              <div class="priority-bar-cell">
+                <div class="priority-bar-track"><div class="priority-bar-fill" style="background: var(--ink-900); width: 100%;"></div></div>
+                <span class="priority-value high">1.0</span>
+              </div>
+            </td>
+            <td><span class="delay-badge">0s</span></td>
+            <td><span class="tone-tag override">OVERRIDE</span></td>
+          </tr>
+          <tr>
+            <td colspan="4" style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-500); padding: 8px 12px;">→ All other personas defer to Story Director</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <!-- Right: Test Panel -->
+  <aside class="test-panel">
+
+    <div class="test-header">
+      <div class="test-title">▶ Live Test</div>
+      <div style="font-size: 12px; color: var(--ink-300);">Simulate event với configured priorities</div>
+    </div>
+
+    <div class="test-section">
+      <div class="test-label">Event Type</div>
+      <select class="test-select">
+        <option>student_wrong_decision</option>
+        <option>student_stress_high</option>
+        <option>key_story_event</option>
+      </select>
+    </div>
+
+    <div class="test-section">
+      <div class="test-label">Context</div>
+      <div class="test-context">
+        Stress: 65%<br>
+        Wrong attempts: 2<br>
+        Last persona: Anh Tùng<br>
+        Time in day: 23 min
+      </div>
+    </div>
+
+    <button class="btn btn-primary" style="width: 100%; margin-bottom: 16px;">▶ Run simulation</button>
+
+    <div class="test-section">
+      <div class="test-label">Result</div>
+
+      <div class="test-result-card alpha">
+        <div class="test-result-time">T+0.3s · priority 0.9</div>
+        <div class="test-result-name">🎭 Anh Tùng</div>
+        <div class="test-result-msg">"Số liệu đâu? Sai 2 lần rồi đấy."</div>
+        <div class="test-result-meta">
+          <span class="test-meta-pill">frustrated</span>
+          <span class="test-meta-pill success">✓ Approved</span>
+        </div>
+      </div>
+
+      <div class="test-result-card boss">
+        <div class="test-result-time">T+2.1s · priority 0.5</div>
+        <div class="test-result-name">💼 Chị Mai</div>
+        <div class="test-result-msg">"Tôi cần kết quả tuần này để đưa lên CEO!"</div>
+        <div class="test-result-meta">
+          <span class="test-meta-pill">demanding</span>
+          <span class="test-meta-pill success">✓ Approved</span>
+        </div>
+      </div>
+
+      <div class="test-result-card chip">
+        <div class="test-result-time">T+4.5s · priority 0.3</div>
+        <div class="test-result-name">🤖 Chip</div>
+        <div class="test-result-msg">"Hey, hít thở nhé. Cậu có thể nhìn lại data Q3 không?"</div>
+        <div class="test-result-meta">
+          <span class="test-meta-pill">supportive</span>
+          <span class="test-meta-pill success">✓ Approved</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <div class="test-label">Summary</div>
+      <div class="summary-row"><span>Total cost</span><strong>$0.0089</strong></div>
+      <div class="summary-row"><span>Total latency</span><strong>4.5s</strong></div>
+      <div class="summary-row"><span>Conflict check</span><strong style="color: var(--signal-calm);">✓ Consistent</strong></div>
+    </div>
+
+  </aside>
+
+</div>
+
+<footer class="status-bar">
+  <span>Marketing Day 5 v0.8</span>
+  <span style="color: var(--ink-500);">|</span>
+  <span>3 personas · 5 events configured</span>
+  <span style="color: var(--ink-500);">|</span>
+  <span class="alert">⚠ 1 conflict alert pending</span>
+  <span style="margin-left: auto;">Auto-saved 2 min ago</span>
+</footer>
+
+<script src="../shared/navigation.js"></script>
+<script>
+  document.getElementById('header').innerHTML = buildHeader({
+    breadcrumb: ['Operations', 'Orchestrator Console', 'Marketing Day 5'],
+    rightActions: ['notification', 'avatar']
+  });
+
+  document.querySelectorAll('.config-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.config-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

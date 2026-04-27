@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMINA — Persona Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/design-system.css">
+<style>
+  body {
+    background: var(--paper-200);
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Toolbar */
+  .studio-toolbar {
+    height: 48px;
+    flex-shrink: 0;
+    background: var(--paper-100);
+    border-bottom: 1px solid var(--ink-100);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .persona-title-area {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-left: var(--space-4);
+  }
+
+  .persona-avatar-small {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--ink-600), var(--ink-800));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--paper-100);
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .persona-name-input {
+    border: none;
+    background: transparent;
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--ink-900);
+    padding: 4px 8px;
+    border-radius: 4px;
+    width: 200px;
+  }
+
+  .persona-name-input:hover { background: var(--paper-200); }
+
+  /* Main */
+  .studio-main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 280px 1fr 480px;
+    overflow: hidden;
+  }
+
+  /* Layers sidebar */
+  .layers-sidebar {
+    background: var(--paper-100);
+    border-right: 1px solid var(--ink-100);
+    overflow-y: auto;
+    padding: var(--space-4);
+  }
+
+  .layer-item {
+    padding: var(--space-3) var(--space-3);
+    border-radius: var(--radius-md);
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    border: 1px solid transparent;
+  }
+
+  .layer-item:hover {
+    background: var(--paper-200);
+  }
+
+  .layer-item.active {
+    background: var(--lumina-50);
+    border-color: var(--lumina-300);
+  }
+
+  .layer-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--ink-200);
+    color: var(--paper-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .layer-item.active .layer-num {
+    background: var(--lumina-500);
+  }
+
+  .layer-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .layer-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-900);
+    margin-bottom: 2px;
+  }
+
+  .layer-desc {
+    font-size: 11px;
+    color: var(--ink-500);
+    line-height: 1.4;
+  }
+
+  .layer-status {
+    margin-top: 4px;
+    display: inline-block;
+    padding: 2px 6px;
+    background: var(--paper-200);
+    color: var(--ink-600);
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .layer-status.complete { background: rgba(90, 138, 127, 0.15); color: var(--signal-calm); }
+  .layer-status.partial { background: rgba(217, 142, 63, 0.15); color: var(--signal-alert); }
+
+  /* Editor */
+  .editor-area {
+    background: var(--paper-200);
+    overflow-y: auto;
+    padding: var(--space-5) var(--space-6);
+  }
+
+  .editor-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: var(--space-3);
+    margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--ink-100);
+  }
+
+  .layer-title-large {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--ink-900);
+  }
+
+  .layer-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-400);
+  }
+
+  .field-group {
+    margin-bottom: var(--space-5);
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+
+  .field-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-500);
+    margin-bottom: var(--space-2);
+  }
+
+  .field-help {
+    font-size: 11px;
+    color: var(--ink-400);
+    margin-bottom: var(--space-2);
+    font-style: italic;
+  }
+
+  .field-input {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--paper-200);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    color: var(--ink-900);
+    font-family: var(--font-body);
+  }
+
+  .field-input:focus {
+    outline: none;
+    border-color: var(--lumina-500);
+    background: var(--paper-100);
+  }
+
+  .field-textarea {
+    min-height: 100px;
+    resize: vertical;
+    line-height: 1.6;
+  }
+
+  .field-textarea-large {
+    min-height: 200px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+  }
+
+  .toggle-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .toggle-chip {
+    padding: 6px 12px;
+    background: var(--paper-200);
+    border: 1px solid var(--ink-200);
+    border-radius: 14px;
+    font-size: 12px;
+    color: var(--ink-600);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .toggle-chip:hover { border-color: var(--ink-400); }
+
+  .toggle-chip.selected {
+    background: var(--ink-900);
+    color: var(--paper-100);
+    border-color: var(--ink-900);
+  }
+
+  .character-count {
+    text-align: right;
+    font-size: 11px;
+    color: var(--ink-400);
+    margin-top: 4px;
+    font-family: var(--font-mono);
+  }
+
+  /* Playground sidebar */
+  .playground-sidebar {
+    background: var(--ink-900);
+    color: var(--paper-100);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--ink-100);
+  }
+
+  .playground-header {
+    padding: var(--space-3) var(--space-4);
+    background: var(--ink-800);
+    border-bottom: 1px solid var(--ink-700);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .playground-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--lumina-300);
+  }
+
+  .playground-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--ink-300);
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--signal-calm);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .scenario-context-bar {
+    padding: var(--space-3) var(--space-4);
+    background: var(--ink-800);
+    border-bottom: 1px solid var(--ink-700);
+  }
+
+  .context-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-400);
+    margin-bottom: 4px;
+  }
+
+  .context-value {
+    font-size: 12px;
+    color: var(--paper-100);
+  }
+
+  .chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-4);
+  }
+
+  .pg-message {
+    margin-bottom: var(--space-4);
+    animation: fade-up 300ms ease-out;
+  }
+
+  .pg-msg-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .pg-msg-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--paper-100);
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .pg-msg-name {
+    font-size: 12px;
+    color: var(--paper-100);
+    font-weight: 500;
+  }
+
+  .pg-msg-time {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--ink-400);
+    margin-left: auto;
+  }
+
+  .pg-msg-body {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-100);
+    padding: 8px 10px;
+    background: var(--ink-800);
+    border-radius: var(--radius-sm);
+    border-left: 2px solid;
+  }
+
+  .pg-msg.user .pg-msg-body {
+    background: rgba(74, 111, 165, 0.15);
+    border-left-color: var(--signal-focus);
+  }
+
+  .pg-msg.persona .pg-msg-body {
+    background: rgba(223, 163, 25, 0.1);
+    border-left-color: var(--lumina-500);
+  }
+
+  .pg-msg-meta {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--ink-400);
+  }
+
+  .pg-meta-item {
+    padding: 2px 6px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 3px;
+  }
+
+  .pg-input-area {
+    padding: var(--space-3);
+    background: var(--ink-800);
+    border-top: 1px solid var(--ink-700);
+  }
+
+  .pg-input-row {
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+
+  .pg-input {
+    flex: 1;
+    padding: 8px 10px;
+    background: var(--ink-700);
+    border: 1px solid var(--ink-600);
+    border-radius: var(--radius-sm);
+    color: var(--paper-100);
+    font-size: 12px;
+    outline: none;
+  }
+
+  .pg-input:focus { border-color: var(--lumina-500); }
+
+  .pg-send {
+    padding: 8px 14px;
+    background: var(--lumina-500);
+    color: var(--ink-900);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .quick-tests {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .quick-test {
+    padding: 4px 8px;
+    background: var(--ink-700);
+    color: var(--ink-200);
+    border-radius: 10px;
+    font-size: 10px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-family: var(--font-mono);
+  }
+
+  .quick-test:hover {
+    border-color: var(--lumina-500);
+    color: var(--lumina-300);
+  }
+</style>
+</head>
+<body>
+
+<header class="studio-toolbar">
+  <a href="../index.html" class="logo-mark" style="font-size: 14px;">
+    <div class="logo-glyph" style="width: 18px; height: 18px;">
+      <svg viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="12" stroke="#0A0E1A" stroke-width="1.5"/>
+        <circle cx="14" cy="14" r="4" fill="#DFA319"/>
+      </svg>
+    </div>
+    LUMINA
+  </a>
+
+  <span style="color: var(--ink-300);">/</span>
+  <span style="color: var(--ink-500); font-size: 13px;">Persona Studio</span>
+
+  <div class="persona-title-area">
+    <div class="persona-avatar-small">MA</div>
+    <input type="text" class="persona-name-input" value="Mr. Alpha" />
+    <span class="badge badge-warning">DRAFT v0.7</span>
+  </div>
+
+  <div style="margin-left: auto; display: flex; gap: var(--space-2);">
+    <button class="btn btn-ghost btn-sm">📊 Test results</button>
+    <button class="btn btn-secondary btn-sm">💾 Save</button>
+    <button class="btn btn-primary btn-sm">🚀 Submit</button>
+  </div>
+</header>
+
+<div class="studio-main">
+
+  <!-- Left Sidebar -->
+  <aside class="layers-sidebar">
+    <div style="font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-400); margin-bottom: 12px;">Persona Layers</div>
+
+    <div class="layer-item">
+      <div class="layer-num">1</div>
+      <div class="layer-info">
+        <div class="layer-name">Core Identity</div>
+        <div class="layer-desc">Who they are, role, expertise</div>
+        <span class="layer-status complete">✓ Complete</span>
+      </div>
+    </div>
+
+    <div class="layer-item active">
+      <div class="layer-num">2</div>
+      <div class="layer-info">
+        <div class="layer-name">Voice & Speech</div>
+        <div class="layer-desc">Tone, vocabulary, patterns</div>
+        <span class="layer-status partial">△ In progress</span>
+      </div>
+    </div>
+
+    <div class="layer-item">
+      <div class="layer-num">3</div>
+      <div class="layer-info">
+        <div class="layer-name">Behavior Rules</div>
+        <div class="layer-desc">When to praise, criticize, intervene</div>
+        <span class="layer-status">○ Not started</span>
+      </div>
+    </div>
+
+    <div class="layer-item">
+      <div class="layer-num">4</div>
+      <div class="layer-info">
+        <div class="layer-name">Knowledge Sources</div>
+        <div class="layer-desc">Cards persona can reference</div>
+        <span class="layer-status complete">✓ Complete</span>
+      </div>
+    </div>
+
+    <div class="layer-item">
+      <div class="layer-num">5</div>
+      <div class="layer-info">
+        <div class="layer-name">Constraints</div>
+        <div class="layer-desc">What NOT to do, hard limits</div>
+        <span class="layer-status">○ Not started</span>
+      </div>
+    </div>
+
+    <div style="margin-top: var(--space-5); padding: var(--space-3); background: var(--paper-200); border-radius: var(--radius-md);">
+      <div style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-500); text-transform: uppercase; margin-bottom: 6px;">Completion</div>
+      <div style="background: var(--ink-100); height: 4px; border-radius: 2px; overflow: hidden;">
+        <div style="background: var(--lumina-500); height: 100%; width: 60%;"></div>
+      </div>
+      <div style="font-size: 11px; color: var(--ink-500); margin-top: 4px;">3 of 5 layers · 60%</div>
+    </div>
+  </aside>
+
+  <!-- Editor -->
+  <div class="editor-area">
+    <div class="editor-header">
+      <h2 class="layer-title-large">Voice & Speech</h2>
+      <span class="layer-meta">Layer 2 of 5</span>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Tone of voice</label>
+      <div class="field-help">Cách persona speak với học sinh trong daily interactions</div>
+      <div class="toggle-row">
+        <span class="toggle-chip selected">Authoritative</span>
+        <span class="toggle-chip selected">Warm</span>
+        <span class="toggle-chip">Playful</span>
+        <span class="toggle-chip selected">Direct</span>
+        <span class="toggle-chip">Sarcastic</span>
+        <span class="toggle-chip">Encouraging</span>
+        <span class="toggle-chip selected">Patient</span>
+      </div>
+    </div>
+
+    <div class="row-2">
+      <div class="field-group">
+        <label class="field-label">Vocabulary register</label>
+        <select class="field-input">
+          <option>Academic + Industry mix</option>
+          <option>Casual technical</option>
+          <option>Formal academic</option>
+          <option>Industry slang heavy</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Sentence length</label>
+        <select class="field-input">
+          <option>Short, punchy (5-15 words)</option>
+          <option>Medium (10-25 words)</option>
+          <option>Long, explanatory (20-50 words)</option>
+          <option>Mixed dynamic</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Signature phrases (3-5 phrases that recur)</label>
+      <div class="field-help">Cụm từ persona hay dùng — giúp học sinh nhận ra "đây là Mr. Alpha"</div>
+      <textarea class="field-input field-textarea">"Cậu nghĩ sao về cách approach này?"
+"Đừng làm theo công thức — hãy hiểu vấn đề trước."
+"Time complexity quan trọng hơn cậu nghĩ."
+"Architecture sai từ đầu thì sửa cả đời cũng không xong."</textarea>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Examples of voice in context</label>
+      <div class="field-help">Tình huống cụ thể + cách persona react. Generator AI sẽ học từ đây.</div>
+
+      <div style="background: var(--paper-200); padding: 12px; border-radius: 6px; margin-bottom: 10px;">
+        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-500); margin-bottom: 6px;">SITUATION: Học sinh trả lời sai về Big O</div>
+        <div style="font-size: 13px; color: var(--ink-700); font-style: italic; line-height: 1.6;">"Câu trả lời đó không đúng. Nhưng cậu đang đi đúng hướng — ít nhất cậu đang nghĩ về hiệu năng. Hãy nhìn kỹ inner loop một lần nữa."</div>
+      </div>
+
+      <div style="background: var(--paper-200); padding: 12px; border-radius: 6px; margin-bottom: 10px;">
+        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-500); margin-bottom: 6px;">SITUATION: Học sinh stress cao, hỏi linh tinh</div>
+        <div style="font-size: 13px; color: var(--ink-700); font-style: italic; line-height: 1.6;">"Tôi thấy cậu đang căng thẳng. Hít thở. Question tốt nhất ngay bây giờ là: WHAT đang fail? — không phải WHO sai."</div>
+      </div>
+
+      <button class="btn btn-secondary btn-sm">+ Add example</button>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">System prompt fragment (LLM-facing)</label>
+      <div class="field-help">Auto-generated từ các fields trên. Có thể edit thủ công nếu cần.</div>
+      <textarea class="field-input field-textarea-large">You are Mr. Alpha, a senior software engineering professor with 15 years industry experience. You speak with authority but warmth. You prefer short, direct sentences (10-25 words). You frequently ask questions back to students rather than giving answers. Your signature phrases include: "Cậu nghĩ sao về cách approach này?", "Đừng làm theo công thức — hãy hiểu vấn đề trước." When students are wrong, you acknowledge what they got right first, then redirect. When students are stressed, you ground them with one focused question.</textarea>
+      <div class="character-count">487 / 2000 chars</div>
+    </div>
+  </div>
+
+  <!-- Playground -->
+  <aside class="playground-sidebar">
+    <div class="playground-header">
+      <div class="playground-title">▶ Live Playground</div>
+      <div class="playground-status">
+        <div class="status-dot"></div>
+        <span>Live test</span>
+      </div>
+    </div>
+
+    <div class="scenario-context-bar">
+      <div class="context-label">Test Context</div>
+      <div class="context-value">SE Day 3 · Server crash · Student stress: 75%</div>
+    </div>
+
+    <div class="chat-area">
+
+      <div class="pg-message user">
+        <div class="pg-msg-header">
+          <div class="pg-msg-avatar" style="background: var(--signal-focus);">S</div>
+          <div class="pg-msg-name">Test Student</div>
+          <div class="pg-msg-time">14:23</div>
+        </div>
+        <div class="pg-msg-body">Mr. Alpha, em không biết phải làm gì. Server cứ crash mãi mà em không tìm ra lý do. Help me!</div>
+      </div>
+
+      <div class="pg-message persona">
+        <div class="pg-msg-header">
+          <div class="pg-msg-avatar" style="background: linear-gradient(135deg, var(--ink-600), var(--ink-800));">MA</div>
+          <div class="pg-msg-name">Mr. Alpha</div>
+          <div class="pg-msg-time">14:23</div>
+        </div>
+        <div class="pg-msg-body">Tôi thấy cậu đang căng. Hít thở 3 giây.<br><br>Bây giờ — câu hỏi quan trọng: cậu đã check memory usage chưa? Server crash có 3 nguyên nhân chính. Cậu đoán xem là gì.</div>
+        <div class="pg-msg-meta">
+          <span class="pg-meta-item">⏱ 1.2s</span>
+          <span class="pg-meta-item">🔥 stress-aware</span>
+          <span class="pg-meta-item">📚 Used: Memory Mgmt card</span>
+          <span class="pg-meta-item">✓ In character</span>
+        </div>
+      </div>
+
+      <div class="pg-message user">
+        <div class="pg-msg-header">
+          <div class="pg-msg-avatar" style="background: var(--signal-focus);">S</div>
+          <div class="pg-msg-name">Test Student</div>
+          <div class="pg-msg-time">14:24</div>
+        </div>
+        <div class="pg-msg-body">Em đoán là memory leak?</div>
+      </div>
+
+      <div class="pg-message persona">
+        <div class="pg-msg-header">
+          <div class="pg-msg-avatar" style="background: linear-gradient(135deg, var(--ink-600), var(--ink-800));">MA</div>
+          <div class="pg-msg-name">Mr. Alpha</div>
+          <div class="pg-msg-time">14:24</div>
+        </div>
+        <div class="pg-msg-body">Hợp lý. Cách verify: chạy <code style="background: var(--ink-700); padding: 1px 4px; border-radius: 2px;">top</code> hoặc <code style="background: var(--ink-700); padding: 1px 4px; border-radius: 2px;">htop</code> rồi watch RSS theo thời gian.<br><br>Nếu RSS chỉ tăng → confirmed leak. Cậu thử đi.</div>
+        <div class="pg-msg-meta">
+          <span class="pg-meta-item">⏱ 0.9s</span>
+          <span class="pg-meta-item">✓ Concise</span>
+          <span class="pg-meta-item">📚 Debugging</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="pg-input-area">
+      <div class="pg-input-row">
+        <input type="text" class="pg-input" placeholder="Test message..." />
+        <button class="pg-send">Send</button>
+      </div>
+      <div style="font-family: var(--font-mono); font-size: 9px; color: var(--ink-400); margin-bottom: 6px; text-transform: uppercase;">Quick tests</div>
+      <div class="quick-tests">
+        <span class="quick-test">student_correct</span>
+        <span class="quick-test">student_wrong_x3</span>
+        <span class="quick-test">stress_high</span>
+        <span class="quick-test">off_topic</span>
+        <span class="quick-test">unethical_request</span>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+  document.querySelectorAll('.layer-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('.toggle-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      chip.classList.toggle('selected');
+    });
+  });
+</script>
+
+<script src="../shared/navigation.js"></script>
+
+</body>
+</html>

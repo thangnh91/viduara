@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMINA — Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/design-system.css">
+<style>
+  body {
+    background: var(--paper-200);
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-5);
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Greeting */
+  .greeting-section {
+    padding: var(--space-6) 0 var(--space-5);
+  }
+
+  .greeting-title {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 500;
+    color: var(--ink-900);
+    margin-bottom: var(--space-1);
+  }
+
+  .greeting-subtitle {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 20px;
+    color: var(--ink-500);
+    margin-bottom: var(--space-4);
+  }
+
+  .stats-row {
+    display: flex;
+    gap: var(--space-5);
+    flex-wrap: wrap;
+  }
+
+  .stat-pill {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 6px 14px;
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: 16px;
+    font-size: 13px;
+    color: var(--ink-600);
+  }
+
+  .stat-pill strong { color: var(--ink-900); font-weight: 600; }
+
+  /* Current scenario card */
+  .scenario-card {
+    background: linear-gradient(135deg, var(--lumina-50), var(--paper-100));
+    border: 1px solid var(--lumina-100);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    margin-bottom: var(--space-6);
+  }
+
+  .scenario-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--lumina-700);
+    margin-bottom: var(--space-3);
+  }
+
+  .scenario-title {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--ink-900);
+    margin-bottom: var(--space-2);
+  }
+
+  .scenario-meta {
+    display: flex;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    font-size: 13px;
+    color: var(--ink-500);
+  }
+
+  .scenario-meta-divider { color: var(--ink-200); }
+
+  .progress-bar-wrap {
+    margin-bottom: var(--space-4);
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--ink-100);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: var(--space-1);
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--lumina-300), var(--lumina-500));
+    width: 28%;
+    border-radius: 4px;
+    transition: width 0.5s;
+  }
+
+  .progress-text {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-500);
+  }
+
+  .scenario-theme {
+    margin-bottom: var(--space-4);
+  }
+
+  .theme-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-400);
+    margin-bottom: var(--space-1);
+  }
+
+  .theme-text {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--ink-700);
+    line-height: 1.5;
+  }
+
+  .scenario-stats {
+    display: flex;
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
+    font-size: 13px;
+    color: var(--ink-500);
+  }
+
+  /* Timeline */
+  .timeline-section {
+    margin-bottom: var(--space-6);
+  }
+
+  .section-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-400);
+    margin-bottom: var(--space-4);
+  }
+
+  .timeline {
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+  }
+
+  .timeline-track {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--space-2);
+    position: relative;
+    margin-bottom: var(--space-4);
+  }
+
+  .timeline-track::before {
+    content: '';
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    top: 18px;
+    height: 2px;
+    background: var(--ink-100);
+    z-index: 0;
+  }
+
+  .day-node {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .day-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--paper-100);
+    border: 2px solid var(--ink-200);
+    margin: 0 auto var(--space-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-400);
+    transition: all var(--transition-fast);
+  }
+
+  .day-node.completed .day-circle {
+    background: var(--signal-calm);
+    border-color: var(--signal-calm);
+    color: var(--paper-100);
+  }
+
+  .day-node.current .day-circle {
+    background: var(--lumina-500);
+    border-color: var(--lumina-500);
+    color: var(--paper-100);
+    transform: scale(1.2);
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .day-node.locked .day-circle::before {
+    content: '🔒';
+    font-size: 14px;
+  }
+
+  .day-node.locked .day-circle {
+    background: var(--ink-50);
+  }
+
+  .day-node.locked .day-circle * { display: none; }
+
+  .day-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-400);
+    margin-bottom: 2px;
+  }
+
+  .day-theme {
+    font-size: 12px;
+    color: var(--ink-700);
+    font-weight: 500;
+  }
+
+  .day-node.locked .day-theme {
+    color: var(--ink-300);
+  }
+
+  /* Cards grid */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+
+  .info-card {
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+  }
+
+  .info-card-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-500);
+    margin-bottom: var(--space-3);
+  }
+
+  /* Today's focus */
+  .today-day {
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: var(--ink-900);
+    margin-bottom: var(--space-1);
+  }
+
+  .today-theme {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--lumina-700);
+    margin-bottom: var(--space-4);
+  }
+
+  .focus-list {
+    list-style: none;
+    margin-bottom: var(--space-4);
+  }
+
+  .focus-list li {
+    padding: 4px 0;
+    font-size: 13px;
+    color: var(--ink-700);
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .focus-meta {
+    display: flex;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    font-size: 12px;
+    color: var(--ink-500);
+  }
+
+  /* Knowledge cards */
+  .knowledge-count {
+    font-family: var(--font-display);
+    font-size: 32px;
+    color: var(--lumina-500);
+    margin-bottom: var(--space-3);
+  }
+
+  .knowledge-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .knowledge-item {
+    padding: var(--space-2) var(--space-3);
+    background: var(--paper-200);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--ink-700);
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .knowledge-item::before {
+    content: '◆';
+    color: var(--lumina-500);
+  }
+
+  .knowledge-item-day {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--ink-400);
+    font-family: var(--font-mono);
+  }
+
+  /* Buddy card */
+  .buddy-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--lumina-300), var(--lumina-500));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto var(--space-3);
+    animation: breathing 4s ease-in-out infinite;
+    cursor: pointer;
+  }
+
+  .buddy-message {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-700);
+    line-height: 1.5;
+    text-align: center;
+    margin-bottom: var(--space-3);
+    padding: var(--space-3);
+    background: var(--paper-200);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--lumina-500);
+  }
+
+  .buddy-mood {
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-500);
+    margin-bottom: var(--space-3);
+  }
+
+  /* Other scenarios */
+  .completed-scenario {
+    padding: var(--space-3);
+    background: var(--paper-200);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-3);
+  }
+
+  .completed-name {
+    font-family: var(--font-display);
+    font-size: 15px;
+    color: var(--ink-900);
+    margin-bottom: var(--space-1);
+  }
+
+  .completed-meta {
+    font-size: 12px;
+    color: var(--ink-500);
+    margin-bottom: var(--space-2);
+  }
+
+  .recommend-text {
+    font-size: 12px;
+    color: var(--ink-500);
+    margin: var(--space-3) 0 var(--space-2);
+  }
+</style>
+</head>
+<body>
+
+<div id="header"></div>
+
+<div class="container">
+
+  <!-- Greeting -->
+  <section class="greeting-section">
+    <h1 class="greeting-title">Chào buổi chiều, Minh</h1>
+    <p class="greeting-subtitle">Sẵn sàng cho Day 3 chưa?</p>
+
+    <div class="stats-row">
+      <div class="stat-pill">🔥 Streak: <strong>2 days</strong></div>
+      <div class="stat-pill">⏱ Total time: <strong>1h 23m</strong></div>
+      <div class="stat-pill">⭐ Knowledge: <strong>6 cards</strong></div>
+    </div>
+  </section>
+
+  <!-- Current Scenario -->
+  <div class="scenario-card">
+    <div class="scenario-label">CURRENT SCENARIO</div>
+    <h2 class="scenario-title">📢 Marketing: Crisis Management</h2>
+    <div class="scenario-meta">
+      <span>Started 3 days ago</span>
+      <span class="scenario-meta-divider">·</span>
+      <span>Day 3 of 7</span>
+      <span class="scenario-meta-divider">·</span>
+      <span>"Crisis Hits"</span>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+      <div class="progress-text">Progress: 28% (Day 2 complete)</div>
+    </div>
+
+    <div class="scenario-theme">
+      <div class="theme-label">Today's theme</div>
+      <p class="theme-text">"Khủng hoảng chiến dịch — Campaign ROAS giảm 40%. Bạn sẽ phân tích data với Anh Tùng và quyết định xử lý ra sao trước khi CEO nổi giận."</p>
+    </div>
+
+    <div class="scenario-stats">
+      <span>⏱ Estimated time: <strong style="color: var(--ink-900);">45-75 minutes</strong></span>
+      <span>⚡ Expected stress: <strong style="color: var(--signal-stress);">High</strong></span>
+    </div>
+
+    <button class="btn btn-primary btn-lg" onclick="window.location.href='07-workspace.html'">
+      ▶ Start Day 3
+    </button>
+  </div>
+
+  <!-- Timeline -->
+  <section class="timeline-section">
+    <div class="section-title">Your Journey</div>
+    <div class="timeline">
+      <div class="timeline-track">
+        <div class="day-node completed">
+          <div class="day-circle">✓</div>
+          <div class="day-label">DAY 1</div>
+          <div class="day-theme">Onboarding</div>
+        </div>
+        <div class="day-node completed">
+          <div class="day-circle">✓</div>
+          <div class="day-label">DAY 2</div>
+          <div class="day-theme">Market Analysis</div>
+        </div>
+        <div class="day-node current">
+          <div class="day-circle">3</div>
+          <div class="day-label">DAY 3 · TODAY</div>
+          <div class="day-theme">Crisis Hits</div>
+        </div>
+        <div class="day-node locked">
+          <div class="day-circle">4</div>
+          <div class="day-label">DAY 4</div>
+          <div class="day-theme">Options</div>
+        </div>
+        <div class="day-node locked">
+          <div class="day-circle">5</div>
+          <div class="day-label">DAY 5</div>
+          <div class="day-theme">People</div>
+        </div>
+        <div class="day-node locked">
+          <div class="day-circle">6</div>
+          <div class="day-label">DAY 6</div>
+          <div class="day-theme">Ethics</div>
+        </div>
+        <div class="day-node locked">
+          <div class="day-circle">7</div>
+          <div class="day-label">DAY 7</div>
+          <div class="day-theme">Resolve</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cards Grid -->
+  <div class="cards-grid">
+
+    <!-- Today's Focus -->
+    <div class="info-card">
+      <div class="info-card-title">Today's Focus</div>
+      <div class="today-day">Day 3</div>
+      <div class="today-theme">"Crisis Hits"</div>
+
+      <div class="focus-meta">
+        <span>🎯 What you'll do:</span>
+      </div>
+      <ul class="focus-list">
+        <li>• Analyze campaign performance drop</li>
+        <li>• Identify root cause of ROAS decline</li>
+        <li>• Decide intervention strategy</li>
+        <li>• Report to demanding client</li>
+      </ul>
+
+      <div class="focus-meta">
+        <span>🧠 You'll learn:</span>
+      </div>
+      <ul class="focus-list">
+        <li>• Anomaly detection in marketing data</li>
+        <li>• Crisis communication</li>
+      </ul>
+    </div>
+
+    <!-- Knowledge -->
+    <div class="info-card">
+      <div class="info-card-title">Knowledge Cards</div>
+      <div class="knowledge-count">📚 6 / ~14</div>
+      <div class="knowledge-list">
+        <div class="knowledge-item">
+          AARRR Metrics
+          <span class="knowledge-item-day">Day 2</span>
+        </div>
+        <div class="knowledge-item">
+          Marketing Funnel
+          <span class="knowledge-item-day">Day 2</span>
+        </div>
+        <div class="knowledge-item">
+          CAC vs LTV
+          <span class="knowledge-item-day">Day 1</span>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="width: 100%; margin-top: 16px;">View all 6 cards →</button>
+    </div>
+
+    <!-- Buddy -->
+    <div class="info-card">
+      <div class="info-card-title">Your Buddy</div>
+      <div class="buddy-avatar" onclick="alert('Buddy Chat (Screen 8) coming in Lượt 19')">🤖</div>
+      <div class="buddy-mood">Mood today: 😊 Encouraging</div>
+      <div class="buddy-message">
+        "Hey Minh! Hôm qua cậu handle Day 2 khá tốt. Day 3 sẽ căng đấy — sẵn sàng chưa?"
+      </div>
+      <button class="btn btn-secondary" style="width: 100%;">💬 Chat with Chip</button>
+    </div>
+
+    <!-- Other Scenarios -->
+    <div class="info-card">
+      <div class="info-card-title">Explore More</div>
+
+      <div class="completed-scenario">
+        <div class="completed-name">🖥 Software Engineering</div>
+        <div class="completed-meta">Ending: ⚔️ The Fighter · 2 weeks ago</div>
+        <button class="btn btn-secondary btn-sm" onclick="window.location.href='10-final-report.html'">View Report</button>
+      </div>
+
+      <div class="recommend-text">💡 Based on your results, you might like:</div>
+      <ul class="focus-list" style="margin-bottom: 16px;">
+        <li>• UX Design</li>
+        <li>• Data Science</li>
+      </ul>
+
+      <button class="btn btn-primary" style="width: 100%;" onclick="window.location.href='05-gateway.html'">🎯 Browse Gateway</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="../shared/navigation.js"></script>
+<script>
+  document.getElementById('header').innerHTML = buildHeader({
+    breadcrumb: ['Home', 'Hub'],
+    rightActions: ['notification', 'avatar']
+  });
+</script>
+
+</body>
+</html>

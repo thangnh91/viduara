@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMINA — Knowledge Vault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/design-system.css">
+<style>
+  body { background: var(--paper-200); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+  .vault-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 280px 1fr 480px;
+    overflow: hidden;
+  }
+
+  /* Tree sidebar */
+  .tree-sidebar {
+    background: var(--paper-100);
+    border-right: 1px solid var(--ink-100);
+    overflow-y: auto;
+    padding: var(--space-3);
+  }
+
+  .tree-search {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--paper-200);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    margin-bottom: var(--space-3);
+  }
+
+  .tree-domain {
+    margin-bottom: var(--space-3);
+  }
+
+  .tree-domain-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    background: var(--paper-200);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-900);
+    margin-bottom: 4px;
+  }
+
+  .tree-domain-name .count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-500);
+    font-weight: 400;
+  }
+
+  .tree-category {
+    margin-left: 12px;
+    margin-bottom: 6px;
+  }
+
+  .tree-category-name {
+    padding: 4px 8px;
+    font-size: 12px;
+    color: var(--ink-700);
+    cursor: pointer;
+    border-radius: 3px;
+    margin-bottom: 2px;
+  }
+
+  .tree-category-name:hover { background: var(--paper-200); }
+
+  .tree-category-name.active {
+    background: var(--lumina-50);
+    color: var(--lumina-700);
+    font-weight: 500;
+  }
+
+  .tree-category-name .cat-count {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-400);
+    margin-left: 4px;
+  }
+
+  .vault-stats {
+    margin-top: var(--space-4);
+    padding: var(--space-3);
+    background: var(--paper-200);
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    color: var(--ink-700);
+    line-height: 1.7;
+  }
+
+  .vault-stats strong { color: var(--ink-900); }
+
+  /* Center: Cards list */
+  .cards-area {
+    background: var(--paper-200);
+    overflow-y: auto;
+    padding: var(--space-5);
+  }
+
+  .breadcrumb-bar {
+    margin-bottom: var(--space-4);
+    font-size: 13px;
+    color: var(--ink-500);
+  }
+
+  .breadcrumb-bar strong { color: var(--ink-900); }
+
+  .cards-toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  .cards-table {
+    width: 100%;
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-md);
+    border-collapse: collapse;
+    overflow: hidden;
+  }
+
+  .cards-table th {
+    padding: 10px 14px;
+    text-align: left;
+    background: var(--paper-200);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--ink-500);
+    font-weight: 500;
+  }
+
+  .cards-table td {
+    padding: 12px 14px;
+    border-top: 1px solid var(--ink-100);
+    font-size: 13px;
+  }
+
+  .cards-table tr {
+    cursor: pointer;
+    transition: background var(--transition-fast);
+  }
+
+  .cards-table tr:hover { background: var(--paper-200); }
+  .cards-table tr.selected { background: var(--lumina-50); }
+
+  .card-name {
+    font-weight: 500;
+    color: var(--ink-900);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .card-name::before {
+    content: '◆';
+    color: var(--lumina-500);
+  }
+
+  .card-summary {
+    font-size: 12px;
+    color: var(--ink-500);
+    margin-top: 2px;
+  }
+
+  .card-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+  }
+
+  .card-status.verified { background: rgba(90, 138, 127, 0.15); color: var(--signal-calm); }
+  .card-status.pending { background: rgba(217, 142, 63, 0.15); color: var(--signal-alert); }
+  .card-status.outdated { background: rgba(201, 88, 74, 0.15); color: var(--signal-stress); }
+
+  /* Right: Card editor */
+  .editor-panel {
+    background: var(--paper-100);
+    border-left: 1px solid var(--ink-100);
+    overflow-y: auto;
+    padding: var(--space-5);
+  }
+
+  .editor-header {
+    padding-bottom: var(--space-3);
+    margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--ink-100);
+  }
+
+  .editor-card-title {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--ink-900);
+    margin-bottom: 4px;
+  }
+
+  .editor-card-path {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-500);
+    margin-bottom: var(--space-2);
+  }
+
+  .editor-section {
+    margin-bottom: var(--space-4);
+  }
+
+  .editor-section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--lumina-700);
+    margin-bottom: var(--space-2);
+  }
+
+  .editor-text {
+    font-size: 13px;
+    color: var(--ink-700);
+    line-height: 1.6;
+  }
+
+  .editor-text h4 {
+    font-size: 14px;
+    margin: 12px 0 6px;
+    color: var(--ink-900);
+  }
+
+  .editor-text ul {
+    padding-left: 20px;
+    margin: 6px 0;
+  }
+
+  .editor-text strong { color: var(--ink-900); }
+
+  .misconception-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+
+  .misconception-row.bad { color: var(--signal-stress); }
+  .misconception-row.good { color: var(--signal-calm); }
+
+  .related-link {
+    padding: 6px 10px;
+    background: var(--paper-200);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--ink-700);
+    cursor: pointer;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .related-link::before {
+    content: '◆';
+    color: var(--lumina-500);
+  }
+
+  .related-link:hover { background: var(--paper-300); }
+
+  .meta-block {
+    background: var(--paper-200);
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--ink-700);
+    line-height: 1.7;
+  }
+
+  .meta-block strong { color: var(--ink-900); }
+
+  .editor-actions {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--ink-100);
+  }
+</style>
+</head>
+<body>
+
+<div id="header"></div>
+
+<div class="vault-grid">
+
+  <!-- Tree -->
+  <aside class="tree-sidebar">
+    <input type="text" class="tree-search" placeholder="🔍 Search cards..." />
+
+    <div class="tree-domain">
+      <div class="tree-domain-name">
+        <span>🖥</span> Software Engineering <span class="count">24</span>
+      </div>
+      <div class="tree-category">
+        <div class="tree-category-name">Algorithms <span class="cat-count">8</span></div>
+        <div class="tree-category-name">Data Structures <span class="cat-count">6</span></div>
+        <div class="tree-category-name">System Design <span class="cat-count">4</span></div>
+        <div class="tree-category-name">Programming Concepts <span class="cat-count">6</span></div>
+      </div>
+    </div>
+
+    <div class="tree-domain">
+      <div class="tree-domain-name">
+        <span>🏥</span> Medical <span class="count">15</span>
+      </div>
+      <div class="tree-category">
+        <div class="tree-category-name">Anatomy <span class="cat-count">5</span></div>
+        <div class="tree-category-name">Clinical Reasoning <span class="cat-count">4</span></div>
+        <div class="tree-category-name">Pharmacology <span class="cat-count">3</span></div>
+        <div class="tree-category-name">Procedures <span class="cat-count">3</span></div>
+      </div>
+    </div>
+
+    <div class="tree-domain">
+      <div class="tree-domain-name">
+        <span>📢</span> Marketing <span class="count">12</span>
+      </div>
+      <div class="tree-category">
+        <div class="tree-category-name active">Metrics <span class="cat-count">4</span></div>
+        <div class="tree-category-name">Strategy <span class="cat-count">4</span></div>
+        <div class="tree-category-name">Channels <span class="cat-count">4</span></div>
+      </div>
+    </div>
+
+    <div class="tree-domain">
+      <div class="tree-domain-name">
+        <span>🌐</span> Generic <span class="count">8</span>
+      </div>
+      <div class="tree-category">
+        <div class="tree-category-name">Critical Thinking <span class="cat-count">3</span></div>
+        <div class="tree-category-name">Communication <span class="cat-count">3</span></div>
+        <div class="tree-category-name">Problem Solving <span class="cat-count">2</span></div>
+      </div>
+    </div>
+
+    <div class="vault-stats">
+      <strong>Total: 59 cards</strong><br>
+      ✅ Verified: 51 (86%)<br>
+      ⏳ Pending: 5<br>
+      ⚠ Outdated: 3
+    </div>
+  </aside>
+
+  <!-- Cards List -->
+  <main class="cards-area">
+
+    <div class="breadcrumb-bar">
+      📂 <strong>Marketing</strong> › <strong>Metrics</strong> · 4 cards
+    </div>
+
+    <div class="cards-toolbar">
+      <select style="padding: 6px 12px; border: 1px solid var(--ink-200); border-radius: 6px; font-size: 13px;">
+        <option>All status</option>
+        <option>Verified only</option>
+        <option>Pending review</option>
+      </select>
+
+      <button class="btn btn-primary btn-sm" style="margin-left: auto;">+ Add Card</button>
+    </div>
+
+    <table class="cards-table">
+      <thead>
+        <tr>
+          <th>Card</th>
+          <th>Status</th>
+          <th>Updated</th>
+          <th>Used in</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="selected">
+          <td>
+            <div class="card-name">AARRR Metrics</div>
+            <div class="card-summary">Acquisition, Activation, Retention, Referral, Revenue framework</div>
+          </td>
+          <td><span class="card-status verified">✓ Verified</span></td>
+          <td style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-500);">2 weeks ago</td>
+          <td style="color: var(--ink-700);">3 scenarios</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="card-name">CAC vs LTV</div>
+            <div class="card-summary">Customer Acquisition Cost vs Lifetime Value relationship</div>
+          </td>
+          <td><span class="card-status verified">✓ Verified</span></td>
+          <td style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-500);">1 month ago</td>
+          <td style="color: var(--ink-700);">2 scenarios</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="card-name">ROAS</div>
+            <div class="card-summary">Return on Ad Spend - performance metric</div>
+          </td>
+          <td><span class="card-status pending">⏳ Pending</span></td>
+          <td style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-500);">3 days ago</td>
+          <td style="color: var(--ink-400);">0 scenarios</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="card-name">NPS</div>
+            <div class="card-summary">Net Promoter Score - customer satisfaction</div>
+          </td>
+          <td><span class="card-status outdated">⚠ Outdated</span></td>
+          <td style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-500);">8 months ago</td>
+          <td style="color: var(--ink-700);">1 scenario</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top: 32px; padding: 20px; background: var(--paper-100); border: 1px solid var(--lumina-100); border-radius: 12px;">
+      <h4 style="font-family: var(--font-display); font-size: 16px; color: var(--ink-900); margin-bottom: 8px;">💡 Triết lý: Verified, Not Comprehensive</h4>
+      <p style="font-size: 13px; color: var(--ink-600); line-height: 1.6;">
+        Vault chỉ giữ cards: <strong>cần thiết</strong> (used by 1+ scenarios), <strong>verified</strong> bởi expert,
+        <strong>atomic</strong> (1 concept per card), <strong>reusable</strong> (multiple contexts).
+      </p>
+    </div>
+  </main>
+
+  <!-- Editor -->
+  <aside class="editor-panel">
+
+    <div class="editor-header">
+      <div class="editor-card-title">◆ AARRR Metrics</div>
+      <div class="editor-card-path">Marketing › Metrics</div>
+      <div style="display: flex; gap: 6px;">
+        <span class="card-status verified">✓ Verified by Anh Hải</span>
+        <span class="card-status" style="background: var(--ink-100); color: var(--ink-600);">v1.3 Production</span>
+      </div>
+    </div>
+
+    <div class="editor-section">
+      <div class="editor-section-label">Summary</div>
+      <div class="editor-text">
+        AARRR là framework đo lường growth metrics cho startup, gồm 5 stages: Acquisition, Activation, Retention, Referral, Revenue.
+      </div>
+    </div>
+
+    <div class="editor-section">
+      <div class="editor-section-label">Detailed Explanation</div>
+      <div class="editor-text">
+        Framework AARRR (còn gọi <em>Pirate Metrics</em>) được Dave McClure đề xuất 2007. Đây là 5 stages quan trọng nhất của customer journey:
+
+        <h4>1. Acquisition</h4>
+        <ul>
+          <li>Người dùng tìm đến sản phẩm</li>
+          <li>Metrics: Visit count, traffic sources</li>
+        </ul>
+
+        <h4>2. Activation</h4>
+        <ul>
+          <li>User experience "wow moment"</li>
+          <li>Metrics: Sign-up rate, onboarding completion</li>
+        </ul>
+
+        <h4>3. Retention</h4>
+        <ul>
+          <li>User quay lại dùng tiếp</li>
+          <li>Metrics: D1/D7/D30 retention</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="editor-section">
+      <div class="editor-section-label">Examples (Vietnam Context)</div>
+      <div class="editor-text">
+        <ul>
+          <li><strong>TikTok:</strong> Acquisition rất tốt (FYP), Retention rất cao</li>
+          <li><strong>Grab:</strong> Activation có challenge (cần download app, register)</li>
+          <li><strong>VinID:</strong> Cross-product retention qua ecosystem</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="editor-section">
+      <div class="editor-section-label">Common Misconceptions</div>
+      <div class="misconception-row bad">❌ "AARRR là sequence cứng"</div>
+      <div class="misconception-row good">✅ "AARRR là 5 stages parallel"</div>
+      <div class="misconception-row bad" style="margin-top: 8px;">❌ "Activation = Sign-up"</div>
+      <div class="misconception-row good">✅ "Activation = Aha moment"</div>
+    </div>
+
+    <div class="editor-section">
+      <div class="editor-section-label">Related Cards</div>
+      <div class="related-link">Marketing Funnel</div>
+      <div class="related-link">CAC vs LTV</div>
+      <div class="related-link">Cohort Analysis</div>
+      <div class="related-link">Customer Journey</div>
+    </div>
+
+    <div class="editor-section">
+      <div class="editor-section-label">Metadata</div>
+      <div class="meta-block">
+        Version: <strong>1.3</strong><br>
+        Created: 2026-02-10<br>
+        Updated: 2 weeks ago<br>
+        Curator: <strong>Anh Hải</strong><br>
+        Verifier: Dr. Long (PhD MBA)<br><br>
+        <strong>Used in:</strong> 3 scenarios<br>
+        <strong>Referenced by:</strong> 2 personas<br>
+        <strong>Student exposures:</strong> 1,247 (this month)
+      </div>
+    </div>
+
+    <div class="editor-actions">
+      <button class="btn btn-secondary btn-sm">✏ Edit</button>
+      <button class="btn btn-secondary btn-sm">📜 History</button>
+      <button class="btn btn-ghost btn-sm" style="margin-left: auto; color: var(--signal-stress);">⚠ Mark outdated</button>
+    </div>
+
+  </aside>
+
+</div>
+
+<script src="../shared/navigation.js"></script>
+<script>
+  document.getElementById('header').innerHTML = buildHeader({
+    breadcrumb: ['Operations', 'Knowledge Vault'],
+    rightActions: ['notification', 'avatar']
+  });
+</script>
+
+</body>
+</html>

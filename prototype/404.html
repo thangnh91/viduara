@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMINA — 404 Not Found</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Inter+Tight:wght@400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/design-system.css">
+<style>
+  body {
+    background: linear-gradient(180deg, var(--paper-100) 0%, var(--paper-200) 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-5);
+  }
+
+  .error-container {
+    max-width: 540px;
+    text-align: center;
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-xl);
+    padding: var(--space-8) var(--space-6);
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    z-index: 2;
+  }
+
+  .error-glyph {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto var(--space-4);
+    animation: breathing 4s ease-in-out infinite;
+  }
+
+  .error-code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--lumina-700);
+    margin-bottom: var(--space-3);
+  }
+
+  .error-title {
+    font-family: var(--font-display);
+    font-size: 48px;
+    font-style: italic;
+    font-weight: 500;
+    color: var(--ink-900);
+    line-height: 1.1;
+    margin-bottom: var(--space-3);
+  }
+
+  .error-subtitle {
+    font-size: 16px;
+    color: var(--ink-500);
+    line-height: 1.5;
+    margin-bottom: var(--space-5);
+  }
+
+  .error-actions {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+</style>
+</head>
+<body>
+
+<div class="error-container">
+  <div class="error-glyph">
+    <svg viewBox="0 0 64 64" fill="none">
+      <circle cx="32" cy="32" r="28" stroke="#0A0E1A" stroke-width="2"/>
+      <circle cx="32" cy="32" r="10" fill="#DFA319"/>
+    </svg>
+  </div>
+
+  <div class="error-code">Error 404 · Page not found</div>
+  <h1 class="error-title">Bạn đã đi lạc<br>khỏi hành trình</h1>
+  <p class="error-subtitle">
+    Trang này không tồn tại trong LUMINA prototype. Có thể bạn đã type sai URL hoặc link đã expired.
+  </p>
+
+  <div class="error-actions">
+    <a href="/" class="btn btn-primary">🏠 Về trang chủ</a>
+    <a href="screens/07-workspace.html" class="btn btn-secondary">⚡ Vào Workspace</a>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMINA — Scenario Architect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/design-system.css">
+<style>
+  body {
+    background: var(--paper-200);
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Top toolbar */
+  .architect-toolbar {
+    height: 48px;
+    flex-shrink: 0;
+    background: var(--paper-100);
+    border-bottom: 1px solid var(--ink-100);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .scenario-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 13px;
+  }
+
+  .scenario-name-input {
+    border: none;
+    background: transparent;
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ink-900);
+    width: 280px;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+
+  .scenario-name-input:hover { background: var(--paper-200); }
+  .scenario-name-input:focus { background: var(--paper-200); outline: 2px solid var(--lumina-500); }
+
+  .scenario-status {
+    padding: 2px 10px;
+    background: rgba(217, 142, 63, 0.15);
+    color: var(--signal-alert);
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: var(--font-mono);
+  }
+
+  .toolbar-spacer { flex: 1; }
+
+  .toolbar-tabs {
+    display: flex;
+    gap: 0;
+  }
+
+  .toolbar-tab {
+    padding: 6px 14px;
+    font-size: 13px;
+    color: var(--ink-500);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all var(--transition-fast);
+  }
+
+  .toolbar-tab:hover { color: var(--ink-900); }
+
+  .toolbar-tab.active {
+    color: var(--ink-900);
+    border-bottom-color: var(--lumina-500);
+    font-weight: 500;
+  }
+
+  .toolbar-actions {
+    display: flex;
+    gap: var(--space-2);
+    margin-left: auto;
+  }
+
+  /* Main area */
+  .architect-main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 240px 1fr 320px;
+    overflow: hidden;
+  }
+
+  /* Left sidebar - Cast & Tools */
+  .sidebar-left {
+    background: var(--paper-100);
+    border-right: 1px solid var(--ink-100);
+    overflow-y: auto;
+    padding: var(--space-4);
+  }
+
+  .sidebar-section {
+    margin-bottom: var(--space-5);
+  }
+
+  .sidebar-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-400);
+    margin-bottom: var(--space-2);
+  }
+
+  .cast-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .cast-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 6px;
+    border-radius: var(--radius-sm);
+    cursor: grab;
+    transition: background var(--transition-fast);
+  }
+
+  .cast-item:hover { background: var(--paper-200); }
+
+  .cast-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--paper-100);
+    font-weight: 600;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  .cast-name {
+    font-size: 12px;
+    color: var(--ink-700);
+  }
+
+  .cast-role {
+    font-size: 10px;
+    color: var(--ink-400);
+  }
+
+  .add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px;
+    border: 1px dashed var(--ink-200);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--ink-500);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .add-btn:hover {
+    border-color: var(--lumina-500);
+    color: var(--lumina-700);
+  }
+
+  .widget-item {
+    padding: 8px 10px;
+    background: var(--paper-200);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--ink-700);
+    margin-bottom: 4px;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .widget-item:hover { background: var(--paper-300); }
+
+  /* Center - Canvas */
+  .canvas-area {
+    background: var(--paper-200);
+    background-image:
+      linear-gradient(var(--ink-100) 1px, transparent 1px),
+      linear-gradient(90deg, var(--ink-100) 1px, transparent 1px);
+    background-size: 24px 24px;
+    overflow: auto;
+    position: relative;
+    padding: var(--space-5);
+  }
+
+  .timeline-canvas {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    min-width: 1400px;
+  }
+
+  .day-card {
+    flex-shrink: 0;
+    width: 220px;
+    background: var(--paper-100);
+    border: 2px solid var(--ink-100);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    position: relative;
+  }
+
+  .day-card:hover {
+    border-color: var(--lumina-300);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .day-card.selected {
+    border-color: var(--lumina-500);
+    box-shadow: 0 0 0 4px rgba(223, 163, 25, 0.15);
+  }
+
+  .day-header {
+    padding: var(--space-3);
+    background: linear-gradient(135deg, var(--ink-900), var(--ink-700));
+    color: var(--paper-100);
+  }
+
+  .day-num-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--lumina-300);
+    letter-spacing: 0.1em;
+    margin-bottom: 2px;
+  }
+
+  .day-theme-name {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 16px;
+    line-height: 1.3;
+  }
+
+  .day-body {
+    padding: var(--space-3);
+  }
+
+  .day-section-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--ink-400);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+
+  .day-section { margin-bottom: 12px; }
+  .day-section:last-child { margin-bottom: 0; }
+
+  .mini-tag {
+    display: inline-block;
+    padding: 2px 6px;
+    background: var(--paper-200);
+    border-radius: 3px;
+    font-size: 10px;
+    color: var(--ink-600);
+    margin-right: 3px;
+    margin-bottom: 3px;
+    font-family: var(--font-mono);
+  }
+
+  .mini-tag.persona-mr-alpha { background: rgba(30, 34, 53, 0.15); color: var(--ink-700); }
+  .mini-tag.persona-chip { background: var(--lumina-50); color: var(--lumina-700); }
+  .mini-tag.persona-boss { background: rgba(201, 88, 74, 0.15); color: var(--signal-stress); }
+
+  .branch-marker {
+    background: var(--lumina-500);
+    color: var(--paper-100);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    text-align: center;
+    margin-top: 6px;
+  }
+
+  /* Connector arrows */
+  .connector {
+    flex-shrink: 0;
+    width: 32px;
+    color: var(--ink-300);
+    text-align: center;
+    font-size: 24px;
+  }
+
+  /* Right sidebar - Properties */
+  .sidebar-right {
+    background: var(--paper-100);
+    border-left: 1px solid var(--ink-100);
+    overflow-y: auto;
+    padding: var(--space-4);
+  }
+
+  .props-header {
+    padding-bottom: var(--space-3);
+    margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--ink-100);
+  }
+
+  .props-day-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lumina-700);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+
+  .props-day-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-style: italic;
+    color: var(--ink-900);
+  }
+
+  .prop-group {
+    margin-bottom: var(--space-4);
+  }
+
+  .prop-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-400);
+    margin-bottom: var(--space-2);
+  }
+
+  .prop-input {
+    width: 100%;
+    padding: 6px 10px;
+    background: var(--paper-200);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--ink-900);
+  }
+
+  .prop-input:focus {
+    outline: none;
+    border-color: var(--lumina-500);
+    background: var(--paper-100);
+  }
+
+  .prop-textarea {
+    min-height: 70px;
+    resize: vertical;
+    font-family: var(--font-body);
+  }
+
+  .chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .small-chip {
+    padding: 4px 10px;
+    background: var(--paper-200);
+    border-radius: 12px;
+    font-size: 11px;
+    color: var(--ink-600);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all var(--transition-fast);
+  }
+
+  .small-chip:hover { border-color: var(--ink-200); }
+
+  .small-chip.selected {
+    background: var(--ink-900);
+    color: var(--paper-100);
+  }
+
+  .knowledge-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    background: var(--paper-200);
+    border-radius: var(--radius-sm);
+    margin-bottom: 4px;
+    font-size: 12px;
+  }
+
+  .knowledge-row::before {
+    content: '◆';
+    color: var(--lumina-500);
+    margin-right: 6px;
+  }
+
+  /* Bottom status bar */
+  .architect-status {
+    height: 32px;
+    flex-shrink: 0;
+    background: var(--ink-900);
+    color: var(--paper-100);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--space-4);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    gap: var(--space-4);
+  }
+
+  .status-item {
+    color: var(--ink-300);
+  }
+
+  .status-item strong { color: var(--lumina-300); font-weight: 500; }
+
+  .branch-zone {
+    flex-shrink: 0;
+    width: 180px;
+    margin: 0 -8px;
+    padding: var(--space-3);
+    background: linear-gradient(135deg, rgba(223, 163, 25, 0.15), rgba(252, 233, 184, 0.3));
+    border: 2px dashed var(--lumina-500);
+    border-radius: var(--radius-md);
+    text-align: center;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .branch-zone-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--lumina-700);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .branch-zone-title {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-style: italic;
+    color: var(--ink-900);
+    line-height: 1.3;
+  }
+</style>
+</head>
+<body>
+
+<!-- Toolbar -->
+<header class="architect-toolbar">
+  <a href="../index.html" class="logo-mark" style="font-size: 14px;">
+    <div class="logo-glyph" style="width: 18px; height: 18px;">
+      <svg viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="12" stroke="#0A0E1A" stroke-width="1.5"/>
+        <circle cx="14" cy="14" r="4" fill="#DFA319"/>
+      </svg>
+    </div>
+    LUMINA
+  </a>
+
+  <div class="scenario-meta">
+    <span style="color: var(--ink-300);">/</span>
+    <span style="color: var(--ink-500);">Scenario Architect</span>
+    <span style="color: var(--ink-300);">/</span>
+    <input type="text" class="scenario-name-input" value="SE: Junior to Senior" />
+    <span class="scenario-status">DRAFT v0.4</span>
+  </div>
+
+  <div class="toolbar-spacer"></div>
+
+  <div class="toolbar-tabs">
+    <div class="toolbar-tab active">Timeline</div>
+    <div class="toolbar-tab">Cast</div>
+    <div class="toolbar-tab">Triggers</div>
+    <div class="toolbar-tab">Branches</div>
+    <div class="toolbar-tab">Endings</div>
+    <div class="toolbar-tab">Settings</div>
+  </div>
+
+  <div class="toolbar-actions">
+    <button class="btn btn-ghost btn-sm">⏵ Playtest</button>
+    <button class="btn btn-secondary btn-sm">💾 Save</button>
+    <button class="btn btn-primary btn-sm">📤 Submit for Review</button>
+  </div>
+</header>
+
+<!-- Main Area -->
+<div class="architect-main">
+
+  <!-- Left Sidebar -->
+  <aside class="sidebar-left">
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Cast (4)</div>
+      <div class="cast-list">
+        <div class="cast-item">
+          <div class="cast-avatar" style="background: linear-gradient(135deg, var(--ink-600), var(--ink-800));">MA</div>
+          <div>
+            <div class="cast-name">Mr. Alpha</div>
+            <div class="cast-role">Teacher</div>
+          </div>
+        </div>
+        <div class="cast-item">
+          <div class="cast-avatar" style="background: linear-gradient(135deg, var(--lumina-300), var(--lumina-500));">C</div>
+          <div>
+            <div class="cast-name">Chip</div>
+            <div class="cast-role">Buddy</div>
+          </div>
+        </div>
+        <div class="cast-item">
+          <div class="cast-avatar" style="background: linear-gradient(135deg, var(--signal-stress), #B04739);">BN</div>
+          <div>
+            <div class="cast-name">Boss Nam</div>
+            <div class="cast-role">Pressure</div>
+          </div>
+        </div>
+        <div class="cast-item">
+          <div class="cast-avatar" style="background: linear-gradient(135deg, var(--signal-focus), #3D5985);">SD</div>
+          <div>
+            <div class="cast-name">Story Director</div>
+            <div class="cast-role">Orchestrator</div>
+          </div>
+        </div>
+        <div class="add-btn">+ Add persona from Studio</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Widgets Library</div>
+      <div class="widget-item">🖥 CodeSpace</div>
+      <div class="widget-item">📋 TaskBoard</div>
+      <div class="widget-item">🔍 LogHunter</div>
+      <div class="widget-item">💬 TeamChat</div>
+      <div class="widget-item">🚀 DeployFlow</div>
+      <div class="widget-item">📊 AlgorithmAnalyzer</div>
+      <div class="add-btn">+ Browse Widget Catalog</div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Knowledge Cards</div>
+      <div class="widget-item">◆ Big O Notation</div>
+      <div class="widget-item">◆ Sorting Algorithms</div>
+      <div class="widget-item">◆ Memory Management</div>
+      <div class="add-btn">+ Add from Vault</div>
+    </div>
+
+  </aside>
+
+  <!-- Canvas -->
+  <div class="canvas-area">
+    <div class="timeline-canvas">
+
+      <!-- Day 1 -->
+      <div class="day-card" onclick="selectDay(1)">
+        <div class="day-header">
+          <div class="day-num-label">DAY 1 · Onboarding</div>
+          <div class="day-theme-name">"Cơn say lập trình"</div>
+        </div>
+        <div class="day-body">
+          <div class="day-section">
+            <div class="day-section-label">Cast</div>
+            <span class="mini-tag persona-mr-alpha">Mr. Alpha</span>
+            <span class="mini-tag persona-chip">Chip</span>
+          </div>
+          <div class="day-section">
+            <div class="day-section-label">Widget</div>
+            <div style="font-size: 11px; color: var(--ink-700);">🖥 CodeSpace</div>
+          </div>
+          <div class="day-section">
+            <div class="day-section-label">Goal</div>
+            <div style="font-size: 11px; color: var(--ink-700);">First "wow" moment</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="connector">→</div>
+
+      <!-- Day 2 -->
+      <div class="day-card" onclick="selectDay(2)">
+        <div class="day-header">
+          <div class="day-num-label">DAY 2 · Walls</div>
+          <div class="day-theme-name">"Bức tường đầu tiên"</div>
+        </div>
+        <div class="day-body">
+          <div class="day-section">
+            <div class="day-section-label">Cast</div>
+            <span class="mini-tag persona-mr-alpha">Mr. Alpha</span>
+            <span class="mini-tag persona-chip">Chip</span>
+          </div>
+          <div class="day-section">
+            <div class="day-section-label">Widget</div>
+            <div style="font-size: 11px; color: var(--ink-700);">📊 AlgorithmAnalyzer</div>
+          </div>
+          <div class="day-section">
+            <div class="day-section-label">Knowledge</div>
+            <span class="mini-tag">Big O</span>
+            <span class="mini-tag">Sorting</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="connector">→</div>
+
+      <!-- Day 3 (selected) -->
+      <div class="day-card selected" onclick="selectDay(3)">
+        <div class="day-header" style="background: linear-gradient(135deg, var(--signal-stress), #B04739);">
+          <div class="day-num-label">DAY 3 · Crisis</div>
+          <div class="day-theme-name">"Khủng hoảng hệ thống"</div>
+        </div>
+        <div class="day-body">
+          <div class="day-section">
+            <div class="day-section-label">Cast (3)</div>
+            <span class="mini-tag persona-mr-alpha">Mr. Alpha</span>
+            <span class="mini-tag persona-chip">Chip</span>
+            <span class="mini-tag persona-boss">Boss Nam ⚠</span>
+          </div>
+          <div class="day-section">
+            <div class="day-section-label">Widget</div>
+            <div style="font-size: 11px; color: var(--ink-700);">🔍 LogHunter</div>
+          </div>
+          <div class="day-section">
+            <div class="day-section-label">Triggers (3)</div>
+            <div style="font-size: 10px; color: var(--ink-500);">⚡ server_failure @ 5min<br>⚡ stress_high @ 70%<br>⚡ wrong_decision_x3</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="connector">→</div>
+
+      <!-- Branch zone before Day 4 -->
+      <div class="branch-zone">
+        <div class="branch-zone-label">⚡ BRANCH POINT</div>
+        <div class="branch-zone-title">"Frontend hay Backend?"</div>
+      </div>
+
+      <div class="connector">→</div>
+
+      <!-- Day 4 -->
+      <div class="day-card" onclick="selectDay(4)">
+        <div class="day-header">
+          <div class="day-num-label">DAY 4 · Choice</div>
+          <div class="day-theme-name">"Phân nhánh đầu tiên"</div>
+        </div>
+        <div class="day-body">
+          <div class="day-section">
+            <div class="day-section-label">Cast</div>
+            <span class="mini-tag persona-mr-alpha">Mr. Alpha</span>
+            <span class="mini-tag persona-chip">Chip</span>
+          </div>
+          <div class="day-section">
+            <div class="day-section-label">Widget</div>
+            <div style="font-size: 11px; color: var(--ink-700);">🖥 CodeSpace (variant)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="connector">→</div>
+
+      <!-- Day 5 -->
+      <div class="day-card" onclick="selectDay(5)">
+        <div class="day-header">
+          <div class="day-num-label">DAY 5 · People</div>
+          <div class="day-theme-name">"Con người"</div>
+        </div>
+        <div class="day-body">
+          <div class="day-section">
+            <div class="day-section-label">Cast</div>
+            <span class="mini-tag persona-chip">Chip</span>
+            <span class="mini-tag persona-boss">Boss Nam</span>
+          </div>
+          <div class="day-section">
+            <div class="day-section-label">Widget</div>
+            <div style="font-size: 11px; color: var(--ink-700);">📋 TaskBoard</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="connector">→</div>
+
+      <!-- Day 6 -->
+      <div class="day-card" onclick="selectDay(6)">
+        <div class="day-header">
+          <div class="day-num-label">DAY 6 · Ethics</div>
+          <div class="day-theme-name">"Đạo đức"</div>
+        </div>
+        <div class="day-body">
+          <div class="day-section">
+            <div class="day-section-label">Cast</div>
+            <span class="mini-tag persona-mr-alpha">Mr. Alpha</span>
+            <span class="mini-tag persona-chip">Chip</span>
+          </div>
+          <div class="day-section">
+            <div class="day-section-label">Widget</div>
+            <div style="font-size: 11px; color: var(--ink-700);">🖥 CodeSpace</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="connector">→</div>
+
+      <!-- Day 7 -->
+      <div class="day-card" onclick="selectDay(7)">
+        <div class="day-header" style="background: linear-gradient(135deg, var(--lumina-500), var(--lumina-700));">
+          <div class="day-num-label" style="color: rgba(255,255,255,0.8);">DAY 7 · Defense</div>
+          <div class="day-theme-name">"Bảo vệ"</div>
+        </div>
+        <div class="day-body">
+          <div class="day-section">
+            <div class="day-section-label">Endings (5)</div>
+            <div style="font-size: 10px; color: var(--ink-500); line-height: 1.5;">
+              ⚡ Natural<br>
+              ⚔️ Fighter<br>
+              🍃 Wrong Fit<br>
+              🤔 Reluctant<br>
+              💔 Burnout
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Right Sidebar - Properties -->
+  <aside class="sidebar-right">
+    <div class="props-header">
+      <div class="props-day-num">DAY 3 PROPERTIES</div>
+      <div class="props-day-title">"Khủng hoảng hệ thống"</div>
+    </div>
+
+    <div class="prop-group">
+      <div class="prop-label">Theme name</div>
+      <input type="text" class="prop-input" value="Khủng hoảng hệ thống" />
+    </div>
+
+    <div class="prop-group">
+      <div class="prop-label">Day goal (1 sentence)</div>
+      <textarea class="prop-input prop-textarea">Học sinh đối mặt với production crisis: 2am server crash. Phải debug, decide, communicate dưới áp lực thời gian.</textarea>
+    </div>
+
+    <div class="prop-group">
+      <div class="prop-label">Estimated duration (min)</div>
+      <input type="text" class="prop-input" value="60-90" />
+    </div>
+
+    <div class="prop-group">
+      <div class="prop-label">Stress curve target</div>
+      <div class="chip-list">
+        <span class="small-chip">Low</span>
+        <span class="small-chip">Medium</span>
+        <span class="small-chip selected">High peak</span>
+        <span class="small-chip">Sustained high</span>
+      </div>
+    </div>
+
+    <div class="prop-group">
+      <div class="prop-label">Active personas</div>
+      <div class="chip-list">
+        <span class="small-chip selected">Mr. Alpha</span>
+        <span class="small-chip selected">Chip</span>
+        <span class="small-chip selected">Boss Nam</span>
+        <span class="small-chip">+ Add</span>
+      </div>
+    </div>
+
+    <div class="prop-group">
+      <div class="prop-label">Primary widget</div>
+      <input type="text" class="prop-input" value="🔍 LogHunter v1.2" readonly />
+    </div>
+
+    <div class="prop-group">
+      <div class="prop-label">Triggers (3)</div>
+      <div style="background: var(--paper-200); padding: 8px; border-radius: 6px; font-size: 11px; line-height: 1.5; color: var(--ink-700);">
+        ⚡ server_failure @ +5min<br>
+        ⚡ stress_high @ stress > 70%<br>
+        ⚡ wrong_decision_x3 → Boss escalation
+      </div>
+      <button class="add-btn" style="margin-top: 4px;">+ Add trigger</button>
+    </div>
+
+    <div class="prop-group">
+      <div class="prop-label">Knowledge cards (4)</div>
+      <div class="knowledge-row">Memory Mgmt</div>
+      <div class="knowledge-row">Debugging</div>
+      <div class="knowledge-row">SQL Optimization</div>
+      <div class="knowledge-row">System Design</div>
+      <button class="add-btn" style="margin-top: 4px;">+ Add card</button>
+    </div>
+
+    <div class="prop-group">
+      <div class="prop-label">Evaluation hooks</div>
+      <div style="background: var(--paper-200); padding: 8px; border-radius: 6px; font-size: 11px; line-height: 1.5; color: var(--ink-700);">
+        ✓ stress_tolerance<br>
+        ✓ decision_speed<br>
+        ✓ knowledge_application<br>
+        ✓ collaboration_pattern
+      </div>
+    </div>
+
+  </aside>
+
+</div>
+
+<!-- Status Bar -->
+<footer class="architect-status">
+  <span class="status-item">📍 <strong>Day 3 selected</strong></span>
+  <span class="status-item">|</span>
+  <span class="status-item">7 days · 4 personas · 6 widgets · 14 knowledge cards · 2 branches · 5 endings</span>
+  <span class="status-item">|</span>
+  <span class="status-item">⏱ Estimated total: <strong>6h 45m</strong></span>
+  <span style="margin-left: auto;" class="status-item">Auto-saved 2 min ago</span>
+</footer>
+
+<script src="../shared/navigation.js"></script>
+<script>
+  function selectDay(num) {
+    document.querySelectorAll('.day-card').forEach(c => c.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+    document.querySelector('.props-day-num').textContent = `DAY ${num} PROPERTIES`;
+  }
+
+  // Tab switching
+  document.querySelectorAll('.toolbar-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.toolbar-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

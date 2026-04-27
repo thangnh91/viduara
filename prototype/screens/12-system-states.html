@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMINA — System States</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/design-system.css">
+<style>
+  body { background: var(--paper-200); }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-5);
+    position: relative;
+    z-index: 2;
+  }
+
+  .page-title {
+    font-family: var(--font-display);
+    font-size: 32px;
+    color: var(--ink-900);
+    margin: var(--space-5) 0 var(--space-2);
+  }
+
+  .page-subtitle {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--ink-500);
+    margin-bottom: var(--space-6);
+  }
+
+  .states-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-5);
+  }
+
+  .state-card {
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .state-header {
+    padding: var(--space-3) var(--space-4);
+    background: var(--paper-200);
+    border-bottom: 1px solid var(--ink-100);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .state-name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-700);
+    font-weight: 600;
+  }
+
+  .state-frame {
+    padding: var(--space-6);
+    min-height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--paper-100);
+  }
+
+  /* Skeleton */
+  .skeleton-rows { width: 100%; }
+
+  .skeleton-row {
+    background: linear-gradient(90deg, var(--ink-100) 0%, var(--ink-50) 50%, var(--ink-100) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s linear infinite;
+    border-radius: 4px;
+    height: 12px;
+    margin-bottom: 10px;
+  }
+
+  .skeleton-row.short { width: 40%; }
+  .skeleton-row.tall { height: 40px; }
+
+  /* Spinner */
+  .spinner-state { text-align: center; }
+
+  .spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--ink-100);
+    border-top-color: var(--lumina-500);
+    border-radius: 50%;
+    margin: 0 auto var(--space-3);
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Themed loading */
+  .themed-loading {
+    text-align: center;
+    width: 100%;
+  }
+
+  .themed-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: var(--ink-700);
+  }
+
+  .step-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+  }
+
+  .step-icon.done { background: var(--signal-calm); color: var(--paper-100); }
+  .step-icon.active { background: var(--lumina-500); color: var(--paper-100); animation: pulse 1.5s infinite; }
+  .step-icon.pending { background: var(--ink-100); color: var(--ink-300); }
+
+  .themed-text {
+    flex: 1;
+    text-align: left;
+  }
+
+  .themed-text.done { color: var(--ink-500); }
+
+  /* Progress bar state */
+  .progress-state { width: 100%; text-align: center; }
+
+  .progress-label {
+    font-family: var(--font-display);
+    font-size: 16px;
+    color: var(--ink-900);
+    margin-bottom: var(--space-3);
+  }
+
+  .progress-bar-large {
+    width: 100%;
+    height: 12px;
+    background: var(--ink-100);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--lumina-300), var(--lumina-500));
+    width: 65%;
+    border-radius: 6px;
+  }
+
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-500);
+  }
+
+  /* Empty states */
+  .empty-state {
+    text-align: center;
+  }
+
+  .empty-icon {
+    font-size: 64px;
+    margin-bottom: var(--space-3);
+    opacity: 0.4;
+  }
+
+  .empty-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    color: var(--ink-900);
+    margin-bottom: var(--space-2);
+  }
+
+  .empty-desc {
+    font-size: 14px;
+    color: var(--ink-500);
+    margin-bottom: var(--space-4);
+    max-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+  }
+
+  /* Error states */
+  .error-state {
+    text-align: center;
+  }
+
+  .error-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(217, 142, 63, 0.15);
+    color: var(--signal-alert);
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-3);
+  }
+
+  .error-state.critical .error-icon {
+    background: rgba(201, 88, 74, 0.15);
+    color: var(--signal-stress);
+  }
+
+  .error-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    color: var(--ink-900);
+    margin-bottom: var(--space-2);
+  }
+
+  .error-desc {
+    font-size: 14px;
+    color: var(--ink-500);
+    margin-bottom: var(--space-3);
+    line-height: 1.6;
+  }
+
+  .error-id {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-400);
+    background: var(--paper-200);
+    padding: 4px 10px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: var(--space-3);
+  }
+
+  /* Offline banner */
+  .offline-banner {
+    background: rgba(201, 88, 74, 0.95);
+    color: var(--paper-100);
+    padding: var(--space-3);
+    text-align: center;
+    border-radius: var(--radius-md);
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    justify-content: center;
+  }
+
+  /* Permission denied */
+  .lock-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--ink-100);
+    color: var(--ink-500);
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-3);
+  }
+</style>
+</head>
+<body>
+
+<div id="header"></div>
+
+<div class="container">
+
+  <h1 class="page-title">System States</h1>
+  <p class="page-subtitle">Loading, Empty, Error, Offline patterns dùng xuyên suốt LUMINA</p>
+
+  <div class="states-grid">
+
+    <!-- Skeleton loading -->
+    <div class="state-card">
+      <div class="state-header">
+        <span class="state-name">Loading · Skeleton</span>
+        <span class="badge badge-info">Most preferred</span>
+      </div>
+      <div class="state-frame">
+        <div class="skeleton-rows">
+          <div class="skeleton-row tall"></div>
+          <div class="skeleton-row"></div>
+          <div class="skeleton-row short"></div>
+          <div class="skeleton-row"></div>
+          <div class="skeleton-row tall"></div>
+          <div class="skeleton-row short"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spinner -->
+    <div class="state-card">
+      <div class="state-header">
+        <span class="state-name">Loading · Spinner</span>
+        <span class="badge badge-neutral">Brief actions</span>
+      </div>
+      <div class="state-frame">
+        <div class="spinner-state">
+          <div class="spinner"></div>
+          <div style="font-size: 14px; color: var(--ink-500);">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Themed loading (Final Report) -->
+    <div class="state-card">
+      <div class="state-header">
+        <span class="state-name">Loading · Themed (Final Report)</span>
+        <span class="badge badge-lumina">Branded</span>
+      </div>
+      <div class="state-frame">
+        <div class="themed-loading">
+          <div style="font-family: var(--font-display); font-style: italic; font-size: 18px; color: var(--ink-900); margin-bottom: 16px;">
+            Đang phân tích hành trình của bạn...
+          </div>
+          <div style="text-align: left; max-width: 280px; margin: 0 auto;">
+            <div class="themed-step">
+              <div class="step-icon done">✓</div>
+              <div class="themed-text done">Đo 35 khoảnh khắc áp lực</div>
+            </div>
+            <div class="themed-step">
+              <div class="step-icon active">●</div>
+              <div class="themed-text">Đối chiếu với 4,532 học sinh</div>
+            </div>
+            <div class="themed-step">
+              <div class="step-icon pending">○</div>
+              <div class="themed-text" style="color: var(--ink-400);">Chuẩn bị báo cáo</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="state-card">
+      <div class="state-header">
+        <span class="state-name">Loading · Progress (PDF)</span>
+        <span class="badge badge-neutral">Long ops</span>
+      </div>
+      <div class="state-frame">
+        <div class="progress-state">
+          <div class="progress-label">Generating your report...</div>
+          <div class="progress-bar-large">
+            <div class="progress-bar-fill"></div>
+          </div>
+          <div class="progress-meta">
+            <span>65%</span>
+            <span>~15s remaining</span>
+          </div>
+          <button class="btn btn-ghost btn-sm" style="margin-top: 16px;">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty: New -->
+    <div class="state-card">
+      <div class="state-header">
+        <span class="state-name">Empty · First-time user</span>
+        <span class="badge badge-success">Encouraging</span>
+      </div>
+      <div class="state-frame">
+        <div class="empty-state">
+          <div class="empty-icon">🎬</div>
+          <div class="empty-title">Chưa có scenario nào</div>
+          <div class="empty-desc">Bắt đầu hành trình của bạn bằng cách chọn ngành đầu tiên.</div>
+          <button class="btn btn-primary btn-sm">Browse Gateway</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty: Filtered -->
+    <div class="state-card">
+      <div class="state-header">
+        <span class="state-name">Empty · Filtered too narrow</span>
+        <span class="badge badge-info">Helpful</span>
+      </div>
+      <div class="state-frame">
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-title">Không có kết quả</div>
+          <div class="empty-desc">Thử mở rộng filters hoặc tìm với keyword khác.</div>
+          <button class="btn btn-secondary btn-sm">Clear all filters</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty: Cleared -->
+    <div class="state-card">
+      <div class="state-header">
+        <span class="state-name">Empty · All caught up</span>
+        <span class="badge badge-success">Positive</span>
+      </div>
+      <div class="state-frame">
+        <div class="empty-state">
+          <div class="empty-icon">✨</div>
+          <div class="empty-title">All caught up!</div>
+          <div class="empty-desc">Bạn không có notification chưa đọc nào. Tận hưởng nhé!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error: Soft -->
+    <div class="state-card">
+      <div class="state-header">
+        <span class="state-name">Error · Soft (retry)</span>
+        <span class="badge badge-warning">Transient</span>
+      </div>
+      <div class="state-frame">
+        <div class="error-state">
+          <div class="error-icon">⚠</div>
+          <div class="error-title">Có gì đó không ổn</div>
+          <div class="error-desc">Tải lại trang có thể giúp. Progress của bạn được lưu đầy đủ.</div>
+          <button class="btn btn-primary btn-sm">Retry</button>
+          <button class="btn btn-ghost btn-sm" style="margin-left: 8px;">Refresh page</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error: Hard -->
+    <div class="state-card">
+      <div class="state-header">
+        <span class="state-name">Error · Hard (severe)</span>
+        <span class="badge badge-danger">Critical</span>
+      </div>
+      <div class="state-frame">
+        <div class="error-state critical">
+          <div class="error-icon">🚨</div>
+          <div class="error-title">Hệ thống gặp lỗi nghiêm trọng</div>
+          <div class="error-desc">Chúng tôi đã được thông báo và đang fix.</div>
+          <div class="error-id">Error ID: #ERR-7891 · 14:23 UTC</div>
+          <div>
+            <button class="btn btn-secondary btn-sm">Go to Hub</button>
+            <button class="btn btn-ghost btn-sm" style="margin-left: 8px;">Report issue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Permission denied -->
+    <div class="state-card">
+      <div class="state-header">
+        <span class="state-name">Permission Denied</span>
+        <span class="badge badge-info">Auth</span>
+      </div>
+      <div class="state-frame">
+        <div class="error-state">
+          <div class="lock-icon">🔒</div>
+          <div class="error-title">Không có quyền truy cập</div>
+          <div class="error-desc">Trang này yêu cầu permission "scenario.edit" mà bạn chưa có.</div>
+          <button class="btn btn-secondary btn-sm">Go back</button>
+          <button class="btn btn-primary btn-sm" style="margin-left: 8px;">Request access</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Network offline -->
+    <div class="state-card">
+      <div class="state-header">
+        <span class="state-name">Network Offline</span>
+        <span class="badge badge-warning">Banner</span>
+      </div>
+      <div class="state-frame" style="padding: 0; min-height: auto;">
+        <div style="width: 100%; padding: var(--space-5);">
+          <div class="offline-banner">
+            <span style="font-size: 18px;">⚠</span>
+            <div style="text-align: left; flex: 1;">
+              <div style="font-weight: 500; font-size: 14px;">Không có kết nối internet</div>
+              <div style="font-size: 12px; opacity: 0.9;">Đang lưu offline. Sẽ sync khi online.</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" style="background: var(--paper-100); color: var(--ink-900);">Try reconnect</button>
+          </div>
+
+          <div style="margin-top: 16px; padding: 16px; background: var(--paper-200); border-radius: 8px; font-size: 13px; color: var(--ink-600);">
+            <strong style="color: var(--ink-900);">Workspace mode:</strong> Switched to read-only.<br>
+            Chat messages queued locally. Resume seamlessly when online.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Maintenance -->
+    <div class="state-card">
+      <div class="state-header">
+        <span class="state-name">Maintenance</span>
+        <span class="badge badge-info">Scheduled</span>
+      </div>
+      <div class="state-frame">
+        <div class="error-state">
+          <div class="error-icon" style="background: rgba(74, 111, 165, 0.15); color: var(--signal-focus);">🛠</div>
+          <div class="error-title">LUMINA đang bảo trì</div>
+          <div class="error-desc">
+            Estimated completion: 24 Apr, 3:00 AM UTC<br>
+            (45 minutes from now)
+          </div>
+          <button class="btn btn-secondary btn-sm">Status page</button>
+          <button class="btn btn-primary btn-sm" style="margin-left: 8px;">Notify me</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top: 32px; padding: 20px; background: var(--lumina-50); border: 1px solid var(--lumina-100); border-radius: 12px;">
+    <h3 style="font-family: var(--font-display); font-size: 18px; color: var(--lumina-700); margin-bottom: 8px;">💡 Triết lý: Errors Are Conversations</h3>
+    <p style="font-size: 14px; color: var(--ink-700); line-height: 1.6;">
+      Không phải "ERROR 404" cold. Mà là helpful conversation: <strong>What happened</strong> (clear, no jargon),
+      <strong>Why</strong> (if known), <strong>What user can do</strong>. Tone: Calm, understanding.
+    </p>
+  </div>
+
+</div>
+
+<script src="../shared/navigation.js"></script>
+<script>
+  document.getElementById('header').innerHTML = buildHeader({
+    breadcrumb: ['Home', 'System States Showcase'],
+    rightActions: ['notification', 'avatar']
+  });
+</script>
+
+</body>
+</html>

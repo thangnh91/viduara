@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMINA — Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/design-system.css">
+<style>
+  body { background: var(--paper-200); }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--space-5);
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Profile header */
+  .profile-header {
+    background: linear-gradient(135deg, var(--ink-900), var(--ink-700));
+    color: var(--paper-100);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    margin: var(--space-5) 0 var(--space-6);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-5);
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--lumina-300), var(--lumina-500));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--paper-100);
+  }
+
+  .profile-info-block h1 {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .profile-info-block .meta {
+    font-size: 14px;
+    color: var(--ink-300);
+    margin-bottom: var(--space-3);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+
+  .stat-block {
+    text-align: center;
+    padding: var(--space-3);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+  }
+
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--lumina-300);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--ink-300);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: var(--space-3);
+    border-bottom: 1px solid var(--ink-200);
+    margin-bottom: var(--space-5);
+  }
+
+  .tab {
+    padding: var(--space-3) var(--space-4);
+    font-size: 14px;
+    color: var(--ink-500);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all var(--transition-fast);
+  }
+
+  .tab:hover { color: var(--ink-900); }
+
+  .tab.active {
+    color: var(--ink-900);
+    font-weight: 500;
+    border-bottom-color: var(--lumina-500);
+  }
+
+  /* Section */
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-400);
+    margin-bottom: var(--space-3);
+  }
+
+  /* Timeline */
+  .journey-timeline {
+    position: relative;
+    padding: var(--space-5);
+    background: var(--paper-100);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-5);
+  }
+
+  .timeline-spine {
+    position: relative;
+    height: 4px;
+    background: var(--ink-100);
+    border-radius: 2px;
+    margin: var(--space-6) 0 var(--space-3);
+  }
+
+  .timeline-events {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin-top: -28px;
+  }
+
+  .timeline-event {
+    text-align: center;
+    cursor: pointer;
+    width: 120px;
+  }
+
+  .timeline-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--paper-100);
+    border: 3px solid var(--lumina-500);
+    margin: 0 auto var(--space-2);
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--lumina-500);
+    font-size: 14px;
+  }
+
+  .timeline-dot.completed {
+    background: var(--signal-calm);
+    border-color: var(--signal-calm);
+    color: var(--paper-100);
+  }
+
+  .timeline-dot.in-progress {
+    background: var(--lumina-500);
+    border-color: var(--lumina-500);
+    color: var(--paper-100);
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .timeline-event-name {
+    font-family: var(--font-display);
+    font-size: 14px;
+    color: var(--ink-900);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+
+  .timeline-event-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-400);
+    margin-bottom: 4px;
+  }
+
+  .timeline-event-status {
+    font-size: 11px;
+    color: var(--ink-500);
+    font-style: italic;
+  }
+
+  /* Scenario cards */
+  .scenarios-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+
+  .scenario-card-full {
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    transition: all var(--transition-base);
+  }
+
+  .scenario-card-full:hover {
+    border-color: var(--lumina-300);
+    box-shadow: var(--shadow-md);
+  }
+
+  .scenario-content {
+    padding: var(--space-5);
+  }
+
+  .scenario-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    margin-bottom: var(--space-2);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .scenario-tag.completed {
+    background: rgba(90, 138, 127, 0.15);
+    color: var(--signal-calm);
+  }
+
+  .scenario-tag.in-progress {
+    background: var(--lumina-50);
+    color: var(--lumina-700);
+  }
+
+  .scenario-name {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--ink-900);
+    margin-bottom: var(--space-2);
+  }
+
+  .scenario-line {
+    font-size: 13px;
+    color: var(--ink-500);
+    margin-bottom: var(--space-3);
+    display: flex;
+    gap: var(--space-3);
+  }
+
+  .scenario-line span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .scenario-divider {
+    color: var(--ink-200);
+  }
+
+  .scenario-key-insights {
+    margin-bottom: var(--space-3);
+  }
+
+  .insights-label {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--ink-400);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .insights-list {
+    list-style: none;
+    font-size: 13px;
+    color: var(--ink-700);
+  }
+
+  .insights-list li { padding: 2px 0; }
+
+  .scenario-actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .scenario-side {
+    background: linear-gradient(135deg, var(--paper-200), var(--paper-300));
+    padding: var(--space-5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 180px;
+    border-left: 1px solid var(--ink-100);
+  }
+
+  .scenario-icon-big {
+    font-size: 48px;
+    margin-bottom: var(--space-2);
+  }
+
+  .scenario-ending {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-style: italic;
+    color: var(--ink-700);
+    text-align: center;
+  }
+
+  .scenario-score {
+    font-family: var(--font-display);
+    font-size: 36px;
+    color: var(--lumina-700);
+    font-weight: 500;
+  }
+
+  /* Progress (for in-progress) */
+  .scenario-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--ink-100);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: var(--space-2) 0;
+  }
+
+  .scenario-progress-fill {
+    height: 100%;
+    background: var(--lumina-500);
+    border-radius: 3px;
+    width: 42%;
+  }
+
+  /* Insights section */
+  .cross-insights {
+    background: linear-gradient(135deg, var(--lumina-50), var(--paper-100));
+    border: 1px solid var(--lumina-100);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    margin-bottom: var(--space-5);
+  }
+
+  .insights-title {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--ink-900);
+    margin-bottom: var(--space-2);
+  }
+
+  .insights-subtitle {
+    color: var(--ink-500);
+    margin-bottom: var(--space-5);
+  }
+
+  .insight-card {
+    padding: var(--space-4);
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-3);
+  }
+
+  .insight-icon {
+    display: inline-block;
+    padding: 4px 8px;
+    background: var(--lumina-500);
+    color: var(--paper-100);
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+  }
+
+  .insight-text {
+    font-size: 14px;
+    color: var(--ink-700);
+    line-height: 1.6;
+  }
+
+  .insight-text strong { color: var(--ink-900); }
+
+  /* Achievements */
+  .achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+  }
+
+  .achievement {
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    text-align: center;
+    transition: all var(--transition-base);
+  }
+
+  .achievement.unlocked {
+    border-color: var(--lumina-300);
+    background: linear-gradient(135deg, var(--lumina-50), var(--paper-100));
+  }
+
+  .achievement.locked {
+    opacity: 0.4;
+  }
+
+  .achievement-icon {
+    font-size: 36px;
+    margin-bottom: var(--space-2);
+  }
+
+  .achievement-name {
+    font-family: var(--font-display);
+    font-size: 13px;
+    color: var(--ink-900);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+
+  .achievement-desc {
+    font-size: 11px;
+    color: var(--ink-500);
+  }
+
+  .achievement-date {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--lumina-700);
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div id="header"></div>
+
+<div class="container">
+
+  <!-- Profile Header -->
+  <div class="profile-header">
+    <div class="profile-avatar">MN</div>
+    <div class="profile-info-block">
+      <h1>Minh Nguyen</h1>
+      <div class="meta">Grade 12 · Hà Nội · Joined LUMINA: March 2026</div>
+
+      <div class="stats-grid">
+        <div class="stat-block">
+          <div class="stat-value">3</div>
+          <div class="stat-label">Scenarios</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-value">1</div>
+          <div class="stat-label">Active</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-value">18</div>
+          <div class="stat-label">Knowledge</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-value">21h</div>
+          <div class="stat-label">Total time</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active">📅 Timeline</div>
+    <div class="tab">📄 Reports</div>
+    <div class="tab">📚 Knowledge</div>
+    <div class="tab">🏆 Achievements & Insights</div>
+  </div>
+
+  <!-- Tab: Timeline -->
+  <div id="tab-timeline">
+
+    <!-- Journey -->
+    <div class="section-label">Your Journey</div>
+
+    <div class="journey-timeline">
+      <div style="text-align: center; margin-bottom: 8px; font-family: var(--font-mono); font-size: 11px; color: var(--ink-400);">
+        MARCH 2026 ──────────── APRIL 2026
+      </div>
+
+      <div class="timeline-spine"></div>
+
+      <div class="timeline-events">
+        <div class="timeline-event">
+          <div class="timeline-dot completed">✓</div>
+          <div class="timeline-event-name">Software Engineering</div>
+          <div class="timeline-event-meta">Mar 15-21</div>
+          <div class="timeline-event-status">⚔️ Fighter</div>
+        </div>
+
+        <div class="timeline-event">
+          <div class="timeline-dot completed">✓</div>
+          <div class="timeline-event-name">Marketing Crisis</div>
+          <div class="timeline-event-meta">Apr 2-8</div>
+          <div class="timeline-event-status">🍃 Wrong Fit</div>
+        </div>
+
+        <div class="timeline-event">
+          <div class="timeline-dot">📖</div>
+          <div class="timeline-event-name">Re-read SE</div>
+          <div class="timeline-event-meta">Apr 12</div>
+          <div class="timeline-event-status">Reflected</div>
+        </div>
+
+        <div class="timeline-event">
+          <div class="timeline-dot in-progress">▶</div>
+          <div class="timeline-event-name">Medical ER</div>
+          <div class="timeline-event-meta">Apr 20-now</div>
+          <div class="timeline-event-status">Day 4 / 7</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Completed Scenarios -->
+    <div class="section-label">Completed Scenarios (2)</div>
+
+    <div class="scenarios-list">
+
+      <div class="scenario-card-full">
+        <div class="scenario-content">
+          <span class="scenario-tag completed">✓ Completed</span>
+          <h3 class="scenario-name">Software Engineering: Junior to Senior</h3>
+          <div class="scenario-line">
+            <span>📅 Mar 21, 2026</span>
+            <span class="scenario-divider">·</span>
+            <span>⏱ 7 days</span>
+            <span class="scenario-divider">·</span>
+            <span>📚 12 cards</span>
+          </div>
+
+          <div class="scenario-key-insights">
+            <div class="insights-label">Key Insights</div>
+            <ul class="insights-list">
+              <li>• Strong systematic thinking (10/10)</li>
+              <li>• Stress với team conflicts</li>
+              <li>• Best as individual contributor</li>
+            </ul>
+          </div>
+
+          <div class="scenario-actions">
+            <button class="btn btn-primary btn-sm" onclick="window.location.href='10-final-report.html'">View Full Report</button>
+            <button class="btn btn-secondary btn-sm">Knowledge Cards (12)</button>
+          </div>
+        </div>
+        <div class="scenario-side">
+          <div class="scenario-icon-big">🖥</div>
+          <div class="scenario-ending">⚔️ The Fighter</div>
+          <div class="scenario-score">78</div>
+          <div style="font-size: 11px; color: var(--ink-500);">/ 100</div>
+        </div>
+      </div>
+
+      <div class="scenario-card-full">
+        <div class="scenario-content">
+          <span class="scenario-tag completed">✓ Completed</span>
+          <h3 class="scenario-name">Marketing: Crisis Management</h3>
+          <div class="scenario-line">
+            <span>📅 Apr 8, 2026</span>
+            <span class="scenario-divider">·</span>
+            <span>⏱ 7 days</span>
+            <span class="scenario-divider">·</span>
+            <span>📚 6 cards</span>
+          </div>
+
+          <div class="scenario-key-insights">
+            <div class="insights-label">Key Insights</div>
+            <ul class="insights-list">
+              <li>• Discomfort với ambiguity</li>
+              <li>• Prefers structured problems</li>
+              <li>• Public-facing work draining</li>
+            </ul>
+          </div>
+
+          <div class="scenario-actions">
+            <button class="btn btn-primary btn-sm">View Full Report</button>
+            <button class="btn btn-secondary btn-sm">Knowledge Cards (6)</button>
+          </div>
+        </div>
+        <div class="scenario-side">
+          <div class="scenario-icon-big">📢</div>
+          <div class="scenario-ending">🍃 Wrong Fit</div>
+          <div class="scenario-score">38</div>
+          <div style="font-size: 11px; color: var(--ink-500);">/ 100</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- In Progress -->
+    <div class="section-label">In Progress</div>
+
+    <div class="scenario-card-full">
+      <div class="scenario-content">
+        <span class="scenario-tag in-progress">▶ In Progress</span>
+        <h3 class="scenario-name">Medical: ER Night Shift</h3>
+        <div class="scenario-line">
+          <span>📅 Started Apr 20, 2026</span>
+          <span class="scenario-divider">·</span>
+          <span>Day 4 / 7</span>
+        </div>
+
+        <div class="scenario-progress-bar">
+          <div class="scenario-progress-fill"></div>
+        </div>
+        <div style="font-size: 12px; color: var(--ink-500); margin-bottom: 12px;">42% — "Critical Decisions"</div>
+
+        <div class="scenario-actions">
+          <button class="btn btn-primary btn-sm" onclick="window.location.href='07-workspace.html'">▶ Continue Day 4</button>
+        </div>
+      </div>
+      <div class="scenario-side">
+        <div class="scenario-icon-big">🏥</div>
+        <div class="scenario-ending" style="color: var(--lumina-700);">In progress</div>
+      </div>
+    </div>
+
+    <!-- Cross-Scenario Insights -->
+    <div class="section-label" style="margin-top: 32px;">Cross-Scenario Insights</div>
+
+    <div class="cross-insights">
+      <h2 class="insights-title">Patterns AI discovered</h2>
+      <p class="insights-subtitle">Phân tích across journeys của bạn để tìm common threads.</p>
+
+      <div class="insight-card">
+        <div class="insight-icon">💡 INSIGHT 1</div>
+        <p class="insight-text">
+          <strong>Stress consistently spikes when:</strong> Team conflicts (3 instances), Client-facing work (2 instances), Public presentations (2 instances).<br><br>
+          <em>Pattern: You thrive in deep individual work.</em><br>
+          <strong>→ Recommendation:</strong> Look for IC-track careers (Senior Engineer, Architect, Researcher).
+        </p>
+      </div>
+
+      <div class="insight-card">
+        <div class="insight-icon">💡 INSIGHT 2</div>
+        <p class="insight-text">
+          <strong>Strengths consistent across domains:</strong> Systematic thinking (10/10 SE, 8/10 Marketing), Pattern recognition, Logical analysis.<br><br>
+          <em>These are core skills that transfer well across multiple fields.</em>
+        </p>
+      </div>
+
+      <div class="insight-card">
+        <div class="insight-icon">💡 INSIGHT 3</div>
+        <p class="insight-text">
+          <strong>Career path recommendation update:</strong><br>
+          1. Software Engineering (78%) — confirmed<br>
+          2. Data Science (predicted 82%) — try this next<br>
+          3. Research/Academic (predicted 75%) — explore<br><br>
+          <button class="btn btn-primary btn-sm" style="margin-top: 8px;">🎯 Try Data Science scenario</button>
+        </p>
+      </div>
+    </div>
+
+    <!-- Achievements -->
+    <div class="section-label">Achievements</div>
+
+    <div class="achievements-grid">
+      <div class="achievement unlocked">
+        <div class="achievement-icon">🎯</div>
+        <div class="achievement-name">First Scenario</div>
+        <div class="achievement-desc">Completed your first journey</div>
+        <div class="achievement-date">Mar 21</div>
+      </div>
+
+      <div class="achievement unlocked">
+        <div class="achievement-icon">⚔️</div>
+        <div class="achievement-name">Survivor</div>
+        <div class="achievement-desc">Completed crisis Day 3</div>
+        <div class="achievement-date">Mar 17</div>
+      </div>
+
+      <div class="achievement unlocked">
+        <div class="achievement-icon">🌍</div>
+        <div class="achievement-name">Explorer</div>
+        <div class="achievement-desc">Tried 3 different majors</div>
+        <div class="achievement-date">Apr 20</div>
+      </div>
+
+      <div class="achievement unlocked">
+        <div class="achievement-icon">📚</div>
+        <div class="achievement-name">Scholar</div>
+        <div class="achievement-desc">18 knowledge cards</div>
+        <div class="achievement-date">Apr 24</div>
+      </div>
+
+      <div class="achievement locked">
+        <div class="achievement-icon">🏆</div>
+        <div class="achievement-name">Marathon</div>
+        <div class="achievement-desc">Complete 5 scenarios</div>
+      </div>
+
+      <div class="achievement locked">
+        <div class="achievement-icon">📅</div>
+        <div class="achievement-name">Dedicated</div>
+        <div class="achievement-desc">Stay 1 month</div>
+      </div>
+
+      <div class="achievement locked">
+        <div class="achievement-icon">🧠</div>
+        <div class="achievement-name">Genius</div>
+        <div class="achievement-desc">50 knowledge cards</div>
+      </div>
+
+      <div class="achievement locked">
+        <div class="achievement-icon">⭐</div>
+        <div class="achievement-name">The Natural</div>
+        <div class="achievement-desc">Earn Natural ending</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="../shared/navigation.js"></script>
+<script>
+  document.getElementById('header').innerHTML = buildHeader({
+    breadcrumb: ['Home', 'Portfolio'],
+    rightActions: ['notification', 'avatar']
+  });
+
+  // Tab switching (visual only - all content shown for demo)
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

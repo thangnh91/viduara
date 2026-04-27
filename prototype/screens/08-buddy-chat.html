@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMINA — Buddy Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/design-system.css">
+<style>
+  body {
+    background: var(--paper-200);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-5);
+  }
+
+  /* Background showing it's a modal context */
+  .background-mock {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 24, 38, 0.7);
+    backdrop-filter: blur(8px);
+    z-index: 1;
+  }
+
+  .modal-hint {
+    position: fixed;
+    top: var(--space-4);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    background: var(--ink-900);
+    color: var(--paper-100);
+    border-radius: 20px;
+    font-size: 12px;
+    z-index: 100;
+    border: 1px solid var(--ink-600);
+  }
+
+  .modal-hint a {
+    color: var(--lumina-300);
+    text-decoration: underline;
+    margin-left: 8px;
+  }
+
+  /* Chat modal */
+  .chat-modal {
+    background: var(--paper-100);
+    border-radius: var(--radius-xl);
+    width: 480px;
+    max-width: 100%;
+    height: 600px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-xl);
+    z-index: 10;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Header */
+  .chat-header {
+    background: linear-gradient(135deg, var(--lumina-300), var(--lumina-500));
+    padding: var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--paper-100);
+  }
+
+  .chat-buddy-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--paper-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    animation: breathing 4s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  .chat-buddy-info { flex: 1; }
+
+  .chat-buddy-name {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .chat-buddy-status {
+    font-size: 12px;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .chat-buddy-status::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--signal-calm);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--paper-100);
+  }
+
+  .chat-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    color: var(--paper-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+  }
+
+  .chat-close:hover { background: rgba(255,255,255,0.3); }
+
+  /* Mood */
+  .chat-mood-bar {
+    padding: var(--space-2) var(--space-4);
+    background: var(--lumina-50);
+    border-bottom: 1px solid var(--lumina-100);
+    font-size: 12px;
+    color: var(--lumina-700);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Messages */
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-4);
+    background: var(--paper-100);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .chat-message {
+    display: flex;
+    gap: var(--space-2);
+    animation: fade-up 300ms ease-out;
+  }
+
+  .chat-message.user {
+    flex-direction: row-reverse;
+  }
+
+  .chat-msg-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--paper-100);
+    font-weight: 600;
+  }
+
+  .chat-msg-avatar.chip {
+    background: linear-gradient(135deg, var(--lumina-300), var(--lumina-500));
+  }
+
+  .chat-msg-avatar.user {
+    background: linear-gradient(135deg, var(--signal-focus), #3D5985);
+    font-size: 13px;
+  }
+
+  .chat-msg-bubble {
+    max-width: 75%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .chat-message.chip .chat-msg-bubble {
+    background: var(--paper-200);
+    color: var(--ink-800);
+    border-top-left-radius: 4px;
+  }
+
+  .chat-message.user .chat-msg-bubble {
+    background: var(--lumina-500);
+    color: var(--paper-100);
+    border-top-right-radius: 4px;
+  }
+
+  .chat-msg-time {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-400);
+    margin-top: 2px;
+  }
+
+  /* Quick replies */
+  .quick-replies {
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--ink-100);
+    background: var(--paper-200);
+  }
+
+  .quick-replies-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-500);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .quick-reply-list {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .quick-reply {
+    padding: 6px 12px;
+    background: var(--paper-100);
+    border: 1px solid var(--ink-200);
+    border-radius: 14px;
+    font-size: 12px;
+    color: var(--ink-700);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .quick-reply:hover {
+    background: var(--lumina-50);
+    border-color: var(--lumina-500);
+    color: var(--lumina-700);
+  }
+
+  /* Input */
+  .chat-input-row {
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--ink-100);
+    display: flex;
+    gap: var(--space-2);
+    background: var(--paper-100);
+  }
+
+  .chat-input {
+    flex: 1;
+    padding: 10px 14px;
+    background: var(--paper-200);
+    border: 1px solid transparent;
+    border-radius: 18px;
+    font-size: 14px;
+    outline: none;
+  }
+
+  .chat-input:focus {
+    background: var(--paper-100);
+    border-color: var(--lumina-500);
+  }
+
+  .chat-send-btn {
+    width: 36px;
+    height: 36px;
+    background: var(--lumina-500);
+    color: var(--paper-100);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .chat-send-btn:hover { background: var(--lumina-700); }
+</style>
+</head>
+<body>
+
+<div class="background-mock"></div>
+
+<div class="modal-hint">
+  💡 Đây là Buddy Chat modal — thường mở từ Workspace.
+  <a href="../index.html">← Back to Index</a>
+</div>
+
+<div class="chat-modal">
+  <div class="chat-header">
+    <div class="chat-buddy-avatar">🤖</div>
+    <div class="chat-buddy-info">
+      <div class="chat-buddy-name">Chip</div>
+      <div class="chat-buddy-status">Online · Always here for you</div>
+    </div>
+    <a href="../index.html" class="chat-close">×</a>
+  </div>
+
+  <div class="chat-mood-bar">
+    😊 Mood today: <strong>Encouraging</strong> · Stress-aware mode active
+  </div>
+
+  <div class="chat-messages">
+
+    <div class="chat-message chip">
+      <div class="chat-msg-avatar chip">🤖</div>
+      <div>
+        <div class="chat-msg-bubble">Hey Minh! Cậu đang ổn không? Tôi thấy stress tăng cao đấy — 87%. Có gì khó nói chuyện với tôi nhé.</div>
+        <div class="chat-msg-time">14:23</div>
+      </div>
+    </div>
+
+    <div class="chat-message user">
+      <div class="chat-msg-avatar user">M</div>
+      <div>
+        <div class="chat-msg-bubble">Mình stress thật. Server crash mà chưa biết phải làm gì.</div>
+        <div class="chat-msg-time">14:24</div>
+      </div>
+    </div>
+
+    <div class="chat-message chip">
+      <div class="chat-msg-avatar chip">🤖</div>
+      <div>
+        <div class="chat-msg-bubble">Mình hiểu cảm giác đó. Thật ra ai cũng từng trải qua — kể cả senior dev.<br><br>Hít thở 30 giây với mình nhé. Sau đó: cậu nhớ Memory Management từ Day 2 không? Đó có thể là starting point.</div>
+        <div class="chat-msg-time">14:24</div>
+      </div>
+    </div>
+
+    <div class="chat-message user">
+      <div class="chat-msg-avatar user">M</div>
+      <div>
+        <div class="chat-msg-bubble">À đúng rồi! Memory leak có thể là vấn đề!</div>
+        <div class="chat-msg-time">14:25</div>
+      </div>
+    </div>
+
+    <div class="chat-message chip">
+      <div class="chat-msg-avatar chip">🤖</div>
+      <div>
+        <div class="chat-msg-bubble">Đó! 💡 Cậu có instinct tốt đấy. Bây giờ về workspace check log với Mr. Alpha xem nhé.<br><br>Mình ở đây nếu cậu cần.</div>
+        <div class="chat-msg-time">14:25</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="quick-replies">
+    <div class="quick-replies-label">Quick replies</div>
+    <div class="quick-reply-list">
+      <span class="quick-reply">Tôi cần break</span>
+      <span class="quick-reply">Help with AARRR</span>
+      <span class="quick-reply">Cảm ơn Chip</span>
+      <span class="quick-reply">Thấy đỡ rồi</span>
+    </div>
+  </div>
+
+  <div class="chat-input-row">
+    <input type="text" class="chat-input" placeholder="Type your message..." />
+    <button class="chat-send-btn">→</button>
+  </div>
+</div>
+
+</body>
+</html>

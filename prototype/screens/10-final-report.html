@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMINA — Final Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/design-system.css">
+<style>
+  body {
+    background: var(--paper-200);
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 var(--space-5);
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Sticky header */
+  .report-header {
+    position: sticky;
+    top: 56px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    padding: var(--space-3) 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 50;
+    margin-bottom: var(--space-5);
+  }
+
+  .header-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: 13px;
+    color: var(--ink-500);
+  }
+
+  .header-actions-row {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  /* Hero - Fighter ending */
+  .hero-section {
+    background: linear-gradient(135deg, #D98E3F 0%, #B57030 100%);
+    color: var(--paper-100);
+    border-radius: var(--radius-xl);
+    padding: var(--space-7) var(--space-6);
+    margin-bottom: var(--space-6);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.1;
+    pointer-events: none;
+  }
+
+  .hero-icon {
+    font-size: 48px;
+    margin-bottom: var(--space-3);
+  }
+
+  .hero-ending {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    opacity: 0.8;
+    margin-bottom: var(--space-2);
+  }
+
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: 56px;
+    font-weight: 500;
+    font-style: italic;
+    line-height: 1.05;
+    margin-bottom: var(--space-3);
+  }
+
+  .hero-tagline {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-style: italic;
+    margin-bottom: var(--space-4);
+    max-width: 540px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.4;
+  }
+
+  .hero-major {
+    display: inline-block;
+    padding: 6px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: var(--space-4);
+  }
+
+  .hero-meta {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-5);
+    font-size: 13px;
+    opacity: 0.85;
+  }
+
+  /* Sections */
+  .report-section {
+    background: var(--paper-100);
+    border: 1px solid var(--ink-100);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    margin-bottom: var(--space-5);
+  }
+
+  .section-number {
+    display: inline-block;
+    padding: 4px 10px;
+    background: var(--ink-900);
+    color: var(--paper-100);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    margin-bottom: var(--space-3);
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--ink-900);
+    margin-bottom: var(--space-2);
+  }
+
+  .section-description {
+    color: var(--ink-500);
+    margin-bottom: var(--space-5);
+    line-height: 1.6;
+  }
+
+  /* Section 1: Compatibility Score */
+  .gauge-container {
+    text-align: center;
+    padding: var(--space-5) 0;
+  }
+
+  .gauge-svg {
+    width: 240px;
+    height: 240px;
+    margin: 0 auto;
+  }
+
+  .gauge-bg {
+    fill: none;
+    stroke: var(--ink-100);
+    stroke-width: 16;
+  }
+
+  .gauge-fill {
+    fill: none;
+    stroke: url(#gaugeGradient);
+    stroke-width: 16;
+    stroke-linecap: round;
+    transition: stroke-dasharray 1.5s ease-out;
+  }
+
+  .gauge-text-wrap {
+    position: relative;
+    margin-top: -180px;
+    margin-bottom: var(--space-4);
+  }
+
+  .gauge-number {
+    font-family: var(--font-display);
+    font-size: 64px;
+    font-weight: 500;
+    color: var(--ink-900);
+    line-height: 1;
+  }
+
+  .gauge-max {
+    font-size: 18px;
+    color: var(--ink-400);
+    font-weight: 400;
+  }
+
+  .gauge-label {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-style: italic;
+    color: var(--lumina-700);
+    margin-top: var(--space-2);
+  }
+
+  .score-zones {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--space-2);
+    margin-top: var(--space-5);
+    padding: var(--space-4);
+    background: var(--paper-200);
+    border-radius: var(--radius-md);
+  }
+
+  .zone {
+    text-align: center;
+    padding: var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+  }
+
+  .zone.active {
+    background: var(--lumina-500);
+    color: var(--paper-100);
+    font-weight: 600;
+  }
+
+  .zone-range {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  /* Section 2: Cognitive Matrix - Radar */
+  .radar-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-5);
+    align-items: center;
+  }
+
+  .radar-svg {
+    width: 100%;
+    max-width: 380px;
+    height: auto;
+  }
+
+  .insights-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .insight {
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+  }
+
+  .insight.strength {
+    background: rgba(90, 138, 127, 0.08);
+    border-left: 3px solid var(--signal-calm);
+  }
+
+  .insight.improve {
+    background: rgba(217, 142, 63, 0.08);
+    border-left: 3px solid var(--signal-alert);
+  }
+
+  .insight-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: var(--space-2);
+  }
+
+  .insight.strength .insight-label { color: var(--signal-calm); }
+  .insight.improve .insight-label { color: var(--signal-alert); }
+
+  .insight-list {
+    list-style: none;
+  }
+
+  .insight-list li {
+    font-size: 13px;
+    color: var(--ink-700);
+    padding: 2px 0;
+  }
+
+  /* Section 3: Stress Timeline */
+  .stress-chart {
+    background: var(--paper-200);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    margin-bottom: var(--space-4);
+  }
+
+  .stress-svg {
+    width: 100%;
+    height: 240px;
+  }
+
+  .key-moment {
+    padding: var(--space-3);
+    margin-bottom: var(--space-3);
+    background: var(--paper-200);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--lumina-500);
+  }
+
+  .moment-time {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--lumina-700);
+    margin-bottom: 4px;
+  }
+
+  .moment-text {
+    font-size: 13px;
+    color: var(--ink-700);
+    line-height: 1.5;
+  }
+
+  /* Section 4: 4-year Forecast */
+  .forecast-card {
+    margin-bottom: var(--space-4);
+    padding: var(--space-5);
+    background: var(--paper-200);
+    border-radius: var(--radius-md);
+  }
+
+  .forecast-period {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--lumina-700);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--space-2);
+  }
+
+  .forecast-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    color: var(--ink-900);
+    margin-bottom: var(--space-3);
+  }
+
+  .forecast-prediction {
+    font-style: italic;
+    color: var(--ink-700);
+    margin-bottom: var(--space-3);
+    line-height: 1.6;
+  }
+
+  .strategy-list {
+    list-style: none;
+    background: var(--paper-100);
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+  }
+
+  .strategy-list li {
+    padding: 4px 0;
+    font-size: 13px;
+    color: var(--ink-700);
+    display: flex;
+    gap: 8px;
+  }
+
+  /* Section 5: Recommendations */
+  .tier-card {
+    margin-bottom: var(--space-4);
+    padding: var(--space-5);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--ink-100);
+  }
+
+  .tier-card.tier-a {
+    background: linear-gradient(135deg, var(--lumina-50), var(--paper-100));
+    border-color: var(--lumina-300);
+  }
+
+  .tier-card.tier-b {
+    background: var(--paper-200);
+  }
+
+  .tier-card.tier-x {
+    background: rgba(201, 88, 74, 0.05);
+    border-color: rgba(201, 88, 74, 0.2);
+  }
+
+  .tier-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--space-2);
+    text-transform: uppercase;
+  }
+
+  .tier-a .tier-label { color: var(--lumina-700); }
+  .tier-b .tier-label { color: var(--ink-500); }
+  .tier-x .tier-label { color: var(--signal-stress); }
+
+  .tier-major {
+    font-family: var(--font-display);
+    font-size: 22px;
+    color: var(--ink-900);
+    margin-bottom: var(--space-2);
+  }
+
+  .tier-meta {
+    font-size: 13px;
+    color: var(--ink-500);
+    margin-bottom: var(--space-3);
+  }
+
+  .tier-section {
+    margin-bottom: var(--space-3);
+  }
+
+  .tier-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-700);
+    margin-bottom: var(--space-1);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Section 6: Parent Insight */
+  .parent-letter {
+    background: var(--paper-200);
+    border-radius: var(--radius-md);
+    padding: var(--space-6);
+    font-family: var(--font-display);
+    line-height: 1.7;
+  }
+
+  .letter-greeting {
+    font-style: italic;
+    margin-bottom: var(--space-4);
+  }
+
+  .letter-section {
+    margin-bottom: var(--space-4);
+  }
+
+  .letter-heading {
+    font-size: 14px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--lumina-700);
+    margin-bottom: var(--space-2);
+  }
+
+  .letter-body {
+    font-size: 15px;
+    color: var(--ink-700);
+  }
+
+  .letter-list {
+    list-style: none;
+    margin: var(--space-2) 0;
+  }
+
+  .letter-list li {
+    padding: 4px 0;
+    font-size: 14px;
+    color: var(--ink-700);
+  }
+
+  .letter-list li::before {
+    content: '•';
+    margin-right: 8px;
+    color: var(--lumina-500);
+  }
+
+  .letter-signature {
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--ink-200);
+    font-style: italic;
+    color: var(--ink-500);
+  }
+
+  /* Bottom actions */
+  .bottom-actions {
+    position: sticky;
+    bottom: var(--space-4);
+    background: var(--ink-900);
+    color: var(--paper-100);
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-xl);
+    margin: var(--space-7) 0 var(--space-5);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .actions-text {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 16px;
+  }
+
+  .actions-buttons {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .btn-on-dark {
+    background: var(--paper-100);
+    color: var(--ink-900);
+  }
+
+  .btn-on-dark:hover { background: var(--paper-200); }
+
+  .btn-cta-dark {
+    background: var(--lumina-500);
+    color: var(--ink-900);
+  }
+  .btn-cta-dark:hover { background: var(--lumina-300); }
+</style>
+</head>
+<body>
+
+<div id="header"></div>
+
+<div class="container">
+
+  <!-- Sticky Report Header -->
+  <div class="report-header">
+    <div class="header-info">
+      <span>📄 Report:</span>
+      <strong style="color: var(--ink-900);">Software Engineering · Junior to Senior</strong>
+      <span style="color: var(--ink-200);">·</span>
+      <span>Mar 21, 2026</span>
+    </div>
+    <div class="header-actions-row">
+      <button class="btn btn-secondary btn-sm">⤓ PDF</button>
+      <button class="btn btn-secondary btn-sm">⤴ Share</button>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="hero-section">
+    <div class="hero-icon">⚔️</div>
+    <div class="hero-ending">YOUR ENDING</div>
+    <h1 class="hero-title">The Fighter</h1>
+    <p class="hero-tagline">Bạn có thể làm được — nhưng phải trả giá.</p>
+    <div class="hero-major">Software Engineering</div>
+
+    <div class="hero-meta">
+      <span>📅 7 days · 8h 23m</span>
+      <span>📊 47 quyết định</span>
+    </div>
+  </section>
+
+  <!-- Section 1: Compatibility Score -->
+  <section class="report-section">
+    <div class="section-number">SECTION 1</div>
+    <h2 class="section-title">Điểm phù hợp tổng quan</h2>
+    <p class="section-description">Dựa trên 47 quyết định và 8 giờ tương tác trong scenario.</p>
+
+    <div class="gauge-container">
+      <svg class="gauge-svg" viewBox="0 0 240 240">
+        <defs>
+          <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#5A8A7F" />
+            <stop offset="50%" stop-color="#D98E3F" />
+            <stop offset="100%" stop-color="#DFA319" />
+          </linearGradient>
+        </defs>
+        <!-- Background arc -->
+        <path class="gauge-bg" d="M 30 180 A 90 90 0 1 1 210 180" />
+        <!-- Fill arc - 78% of arc length 282.74 -->
+        <path class="gauge-fill" d="M 30 180 A 90 90 0 1 1 210 180" stroke-dasharray="220.5 282.74" />
+      </svg>
+
+      <div class="gauge-text-wrap">
+        <div class="gauge-number">78<span class="gauge-max">/100</span></div>
+        <div class="gauge-label">Tiềm năng cao, cần rèn sức bền</div>
+      </div>
+    </div>
+
+    <div class="score-zones">
+      <div class="zone">
+        <div class="zone-range">0-30</div>
+        <div>Không hợp</div>
+      </div>
+      <div class="zone">
+        <div class="zone-range">31-50</div>
+        <div>Cân nhắc</div>
+      </div>
+      <div class="zone">
+        <div class="zone-range">51-70</div>
+        <div>Có tiềm năng</div>
+      </div>
+      <div class="zone active">
+        <div class="zone-range">71-85 ★</div>
+        <div>Phù hợp tốt</div>
+      </div>
+      <div class="zone">
+        <div class="zone-range">86-100</div>
+        <div>Sinh ra cho ngành</div>
+      </div>
+    </div>
+
+    <p style="margin-top: 24px; font-size: 13px; color: var(--ink-500); text-align: center;">
+      💡 So sánh với 4,532 học sinh khác đã thử ngành SE: <strong>Bạn ở top 22%</strong> — cao hơn average 8 điểm.
+    </p>
+  </section>
+
+  <!-- Section 2: Cognitive Matrix -->
+  <section class="report-section">
+    <div class="section-number">SECTION 2</div>
+    <h2 class="section-title">Ma trận năng lực tư duy</h2>
+    <p class="section-description">5 dimensions key của ngành SE, so sánh với Junior và Senior averages.</p>
+
+    <div class="radar-container">
+      <svg class="radar-svg" viewBox="0 0 400 400">
+        <!-- Background pentagon -->
+        <polygon points="200,40 350,150 290,330 110,330 50,150" fill="none" stroke="var(--ink-100)" stroke-width="1"/>
+        <polygon points="200,80 320,170 270,300 130,300 80,170" fill="none" stroke="var(--ink-100)" stroke-width="1"/>
+        <polygon points="200,120 290,190 250,270 150,270 110,190" fill="none" stroke="var(--ink-100)" stroke-width="1"/>
+        <polygon points="200,160 260,210 230,240 170,240 140,210" fill="none" stroke="var(--ink-100)" stroke-width="1"/>
+
+        <!-- Axes -->
+        <line x1="200" y1="200" x2="200" y2="40" stroke="var(--ink-200)" stroke-width="1"/>
+        <line x1="200" y1="200" x2="350" y2="150" stroke="var(--ink-200)" stroke-width="1"/>
+        <line x1="200" y1="200" x2="290" y2="330" stroke="var(--ink-200)" stroke-width="1"/>
+        <line x1="200" y1="200" x2="110" y2="330" stroke="var(--ink-200)" stroke-width="1"/>
+        <line x1="200" y1="200" x2="50" y2="150" stroke="var(--ink-200)" stroke-width="1"/>
+
+        <!-- Junior average (gray) -->
+        <polygon points="200,90 280,180 240,280 160,275 120,170" fill="rgba(149, 153, 176, 0.15)" stroke="#9599B0" stroke-width="2" stroke-dasharray="4 4"/>
+
+        <!-- User score (lumina, scaled to 100% = full size) -->
+        <polygon points="200,40 350,150 244,287 132,300 95,160" fill="rgba(223, 163, 25, 0.2)" stroke="#DFA319" stroke-width="2.5"/>
+
+        <!-- Senior average (dark) -->
+        <polygon points="200,72 326,165 256,285 134,290 80,165" fill="none" stroke="var(--ink-700)" stroke-width="2" stroke-dasharray="2 4"/>
+
+        <!-- Labels -->
+        <text x="200" y="25" text-anchor="middle" font-size="12" fill="var(--ink-700)" font-weight="600">Tư duy hệ thống</text>
+        <text x="200" y="38" text-anchor="middle" font-size="11" fill="var(--lumina-700)" font-family="var(--font-mono)">10/10</text>
+
+        <text x="365" y="155" text-anchor="start" font-size="12" fill="var(--ink-700)" font-weight="600">Xử lý dữ liệu</text>
+        <text x="365" y="168" text-anchor="start" font-size="11" fill="var(--lumina-700)" font-family="var(--font-mono)">10/10</text>
+
+        <text x="305" y="345" text-anchor="middle" font-size="12" fill="var(--ink-700)" font-weight="600">Đạo đức</text>
+        <text x="305" y="358" text-anchor="middle" font-size="11" fill="var(--ink-500)" font-family="var(--font-mono)">7/10</text>
+
+        <text x="95" y="345" text-anchor="middle" font-size="12" fill="var(--ink-700)" font-weight="600">Giao tiếp</text>
+        <text x="95" y="358" text-anchor="middle" font-size="11" fill="var(--ink-500)" font-family="var(--font-mono)">8/10</text>
+
+        <text x="35" y="155" text-anchor="end" font-size="12" fill="var(--ink-700)" font-weight="600">Chịu áp lực</text>
+        <text x="35" y="168" text-anchor="end" font-size="11" fill="var(--lumina-700)" font-family="var(--font-mono)">9/10</text>
+      </svg>
+
+      <div class="insights-list">
+        <div class="insight strength">
+          <div class="insight-label">⭐ Điểm mạnh nổi bật</div>
+          <ul class="insight-list">
+            <li>• Tư duy hệ thống (10/10) — Top 5%</li>
+            <li>• Xử lý dữ liệu nhiễu (10/10) — Quan trọng cho debugging</li>
+            <li>• Chịu áp lực (9/10) — Vượt average Senior</li>
+          </ul>
+        </div>
+
+        <div class="insight improve">
+          <div class="insight-label">⚠ Điểm cần phát triển</div>
+          <ul class="insight-list">
+            <li>• Giao tiếp & trình bày (8/10) — Cần cho Senior level</li>
+            <li>• Ra quyết định đạo đức (7/10) — Sẽ học qua thực hành</li>
+          </ul>
+        </div>
+
+        <div style="display: flex; gap: 12px; font-size: 11px; color: var(--ink-500); margin-top: 8px;">
+          <span><span style="display: inline-block; width: 10px; height: 10px; background: rgba(223, 163, 25, 0.5); border: 1.5px solid var(--lumina-500); border-radius: 2px; vertical-align: middle;"></span> Bạn</span>
+          <span><span style="display: inline-block; width: 10px; height: 10px; background: rgba(149, 153, 176, 0.15); border: 1.5px dashed #9599B0; border-radius: 2px; vertical-align: middle;"></span> Junior avg</span>
+          <span><span style="display: inline-block; width: 10px; height: 10px; border: 1.5px dashed var(--ink-700); border-radius: 2px; vertical-align: middle;"></span> Senior avg</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Stress Timeline -->
+  <section class="report-section">
+    <div class="section-number">SECTION 3</div>
+    <h2 class="section-title">Bản đồ áp lực qua 7 ngày</h2>
+    <p class="section-description">Stress level theo từng giờ, với key moments được đánh dấu.</p>
+
+    <div class="stress-chart">
+      <svg class="stress-svg" viewBox="0 0 700 240">
+        <!-- Grid lines -->
+        <line x1="40" y1="40" x2="680" y2="40" stroke="var(--ink-100)" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="40" y1="100" x2="680" y2="100" stroke="var(--ink-100)" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="40" y1="160" x2="680" y2="160" stroke="var(--ink-100)" stroke-width="1" stroke-dasharray="3 3"/>
+
+        <!-- Y-axis labels -->
+        <text x="35" y="44" text-anchor="end" font-size="10" fill="var(--ink-400)" font-family="var(--font-mono)">100%</text>
+        <text x="35" y="104" text-anchor="end" font-size="10" fill="var(--ink-400)" font-family="var(--font-mono)">50%</text>
+        <text x="35" y="200" text-anchor="end" font-size="10" fill="var(--ink-400)" font-family="var(--font-mono)">0%</text>
+
+        <!-- Critical threshold line -->
+        <line x1="40" y1="51" x2="680" y2="51" stroke="var(--signal-stress)" stroke-width="1" stroke-dasharray="2 4"/>
+        <text x="685" y="55" font-size="10" fill="var(--signal-stress)" font-family="var(--font-mono)">⚠ 85%</text>
+
+        <!-- Stress curve -->
+        <path d="M 50,160 L 130,140 L 210,90 L 290,52 L 370,90 L 450,80 L 530,110 L 610,100" fill="none" stroke="var(--lumina-500)" stroke-width="2.5"/>
+
+        <!-- Data points -->
+        <circle cx="50" cy="160" r="5" fill="var(--lumina-500)"/>
+        <circle cx="130" cy="140" r="5" fill="var(--lumina-500)"/>
+        <circle cx="210" cy="90" r="5" fill="var(--lumina-500)"/>
+        <circle cx="290" cy="52" r="6" fill="var(--signal-stress)" stroke="var(--paper-100)" stroke-width="2"/>
+        <circle cx="370" cy="90" r="5" fill="var(--lumina-500)"/>
+        <circle cx="450" cy="80" r="5" fill="var(--lumina-500)"/>
+        <circle cx="530" cy="110" r="5" fill="var(--lumina-500)"/>
+        <circle cx="610" cy="100" r="5" fill="var(--lumina-500)"/>
+
+        <!-- Day labels -->
+        <text x="50" y="225" text-anchor="middle" font-size="11" fill="var(--ink-500)" font-family="var(--font-mono)">D1</text>
+        <text x="130" y="225" text-anchor="middle" font-size="11" fill="var(--ink-500)" font-family="var(--font-mono)">D2</text>
+        <text x="210" y="225" text-anchor="middle" font-size="11" fill="var(--ink-500)" font-family="var(--font-mono)">D3</text>
+        <text x="290" y="225" text-anchor="middle" font-size="11" fill="var(--signal-stress)" font-family="var(--font-mono)" font-weight="600">D3·peak</text>
+        <text x="370" y="225" text-anchor="middle" font-size="11" fill="var(--ink-500)" font-family="var(--font-mono)">D4</text>
+        <text x="450" y="225" text-anchor="middle" font-size="11" fill="var(--ink-500)" font-family="var(--font-mono)">D5</text>
+        <text x="530" y="225" text-anchor="middle" font-size="11" fill="var(--ink-500)" font-family="var(--font-mono)">D6</text>
+        <text x="610" y="225" text-anchor="middle" font-size="11" fill="var(--ink-500)" font-family="var(--font-mono)">D7</text>
+      </svg>
+    </div>
+
+    <div class="key-moment">
+      <div class="moment-time">📍 Day 3, 14:23 — Peak stress 92%</div>
+      <div class="moment-text">Khi server crash trong scenario, bạn đã chịu áp lực cực cao trong 28 phút trước khi tìm ra nguyên nhân. Đây là moment tested resilience nhất.</div>
+    </div>
+
+    <div class="key-moment">
+      <div class="moment-time">📍 Day 5, 10:15 — Lowest stress 25%</div>
+      <div class="moment-text">Khi làm việc solo trên architecture design, bạn cảm thấy thoải mái nhất.</div>
+    </div>
+
+    <div style="background: var(--lumina-50); padding: 20px; border-radius: 10px; margin-top: 20px; border-left: 3px solid var(--lumina-500);">
+      <div style="font-family: var(--font-mono); font-size: 11px; color: var(--lumina-700); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">💡 Pattern phát hiện</div>
+      <p style="font-size: 14px; color: var(--ink-700); margin-bottom: 8px;">Stress spike khi có team conflicts hoặc deadlines. Stress giảm khi solve technical problems độc lập.</p>
+      <p style="font-size: 13px; color: var(--ink-600); font-style: italic;">→ <strong>Khuyến nghị:</strong> Trong nghề SE, hãy tìm role thiên về individual contributor (Senior Engineer, Architect) thay vì Team Lead trong 3-5 năm đầu.</p>
+    </div>
+  </section>
+
+  <!-- Section 4: 4-Year Forecast -->
+  <section class="report-section">
+    <div class="section-number">SECTION 4</div>
+    <h2 class="section-title">Dự báo hành trình 4 năm</h2>
+    <p class="section-description">AI dự đoán những giai đoạn quan trọng dựa trên hành vi của bạn.</p>
+
+    <div class="forecast-card">
+      <div class="forecast-period">YEAR 1-2 · ĐẠI CƯƠNG</div>
+      <div class="forecast-title">Giai đoạn thử thách nhất</div>
+      <p class="forecast-prediction">"Bạn sẽ thấy CỰC KỲ NHÀM CHÁN với Toán cao cấp, Triết học. Nguy cơ bỏ học ở giai đoạn này: <strong style="color: var(--signal-stress); font-style: normal;">40%</strong>. Lý do: Bạn excel ở applied problem solving, nhưng chương trình đại cương VN nặng lý thuyết."</p>
+
+      <div style="font-size: 12px; color: var(--lumina-700); font-weight: 600; margin: 12px 0 8px;">💡 CHIẾN LƯỢC TỒN TẠI:</div>
+      <ul class="strategy-list">
+        <li>✓ Tham gia coding clubs ngay từ năm 1</li>
+        <li>✓ Tìm internship sớm (sau năm 1)</li>
+        <li>✓ Treat đại cương như "bài tập để vượt qua"</li>
+      </ul>
+    </div>
+
+    <div class="forecast-card">
+      <div class="forecast-period">YEAR 3-4 · CHUYÊN NGÀNH</div>
+      <div class="forecast-title">Bạn sẽ tỏa sáng</div>
+      <p class="forecast-prediction">"Bạn sẽ TỎA SÁNG ở các dự án thực tế và thực tập tại doanh nghiệp."</p>
+
+      <div style="font-size: 12px; color: var(--ink-500); font-weight: 600; margin: 12px 0 8px;">LIKELY OUTCOMES:</div>
+      <ul class="strategy-list">
+        <li>• GPA: 3.4-3.7 (good, không xuất sắc)</li>
+        <li>• Có internship offer từ năm 3</li>
+        <li>• Có 1-2 personal projects nổi bật</li>
+      </ul>
+    </div>
+
+    <div class="forecast-card" style="background: linear-gradient(135deg, var(--lumina-50), var(--paper-200));">
+      <div class="forecast-period">POST-GRADUATION</div>
+      <div class="forecast-title">Career Path Most Likely</div>
+      <p class="forecast-prediction">Junior SE @ startup hoặc mid-size company. Likely specialization: Backend hoặc Systems (dựa trên Day 4 choice).</p>
+
+      <ul class="strategy-list">
+        <li>💰 Salary expected: <strong>18-25M VND/tháng (HCM)</strong></li>
+        <li>📈 Path to Senior: 4-6 năm</li>
+      </ul>
+    </div>
+
+    <p style="font-size: 12px; color: var(--ink-400); margin-top: 16px; font-style: italic;">
+      ⚠ Disclaimer: Đây là DỰ BÁO dựa trên patterns, không phải fate. Quyết định và effort của bạn vẫn là yếu tố quan trọng nhất.
+    </p>
+  </section>
+
+  <!-- Section 5: AI Panel Recommendations -->
+  <section class="report-section">
+    <div class="section-number">SECTION 5</div>
+    <h2 class="section-title">Đề xuất từ Hội đồng AI</h2>
+    <p class="section-description">3 hướng đi gợi ý cho bạn dựa trên dữ liệu hành vi.</p>
+
+    <div class="tier-card tier-a">
+      <div class="tier-label">★ TIER A — Match cao nhất</div>
+      <div class="tier-major">📚 Software Engineering</div>
+      <div class="tier-meta">Compatibility: 78/100 · Confidence: HIGH (validated)</div>
+
+      <div class="tier-section">
+        <div class="tier-section-label">Tại sao</div>
+        <ul class="strategy-list" style="background: transparent; padding: 0;">
+          <li>• Bạn excel ở systematic thinking</li>
+          <li>• Tolerable stress trong technical contexts</li>
+          <li>• Strong individual contributor mindset</li>
+        </ul>
+      </div>
+
+      <div class="tier-section">
+        <div class="tier-section-label">⚠ Caveats</div>
+        <ul class="strategy-list" style="background: transparent; padding: 0;">
+          <li>• Cần tránh team management trong 3-5 năm đầu</li>
+          <li>• Cần phát triển communication skills</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tier-card tier-b">
+      <div class="tier-label">◆ TIER B — Lân cận (vùng an toàn)</div>
+      <div class="tier-major">📊 Khoa học Dữ liệu</div>
+      <div class="tier-meta">Predicted: 82/100 (chưa test)</div>
+
+      <p style="font-size: 13px; color: var(--ink-700); margin-bottom: 12px;">Có thể better vì: Bạn có natural data intuition, ít team dependency hơn pure SE, application của math + SE skills.</p>
+
+      <button class="btn btn-primary btn-sm">💡 Try Data Science scenario · 25% off</button>
+    </div>
+
+    <div class="tier-card tier-b">
+      <div class="tier-label">◆ TIER B — Bổ sung</div>
+      <div class="tier-major">💼 Hệ thống Thông tin Quản lý</div>
+      <div class="tier-meta">Predicted: 71/100 (chưa test)</div>
+
+      <p style="font-size: 13px; color: var(--ink-700);">Mix giữa tech và business, easier path to senior roles, less coding-intensive.</p>
+    </div>
+
+    <div class="tier-card tier-x">
+      <div class="tier-label">⚠ TIER X — Tránh</div>
+      <div class="tier-major">🎨 Nghệ thuật / 📢 Marketing / PR</div>
+      <p style="font-size: 13px; color: var(--ink-700);">Bạn tìm quy luật thay vì ngẫu hứng. Bạn ít tolerant với ambiguity. Stress patterns không match.</p>
+    </div>
+  </section>
+
+  <!-- Section 6: Parent Insight -->
+  <section class="report-section">
+    <div class="section-number">SECTION 6</div>
+    <h2 class="section-title">Phụ lục cho phụ huynh</h2>
+    <p class="section-description">Bản tóm tắt dành riêng cho ông/bà về kết quả của con.</p>
+
+    <div class="parent-letter">
+      <p class="letter-greeting">Kính gửi quý phụ huynh,</p>
+
+      <p style="margin-bottom: 24px;">Sau 7 ngày trải nghiệm mô phỏng ngành Software Engineering, con của quý vị đã thể hiện những đặc điểm sau:</p>
+
+      <div class="letter-section">
+        <div class="letter-heading">Đánh giá tổng quan</div>
+        <p class="letter-body">Con có <strong>TIỀM NĂNG TỐT</strong> cho ngành SE, với mức phù hợp 78/100 — cao hơn 78% học sinh đã trải nghiệm cùng ngành.</p>
+      </div>
+
+      <div class="letter-section">
+        <div class="letter-heading">3 điểm mạnh nổi bật</div>
+        <ul class="letter-list">
+          <li><strong>Tư duy logic và phân tích vấn đề (10/10)</strong> — Con có khả năng break down complex problems thành steps đơn giản — kỹ năng cốt lõi của ngành.</li>
+          <li><strong>Khả năng làm việc độc lập (9/10)</strong> — Con tập trung tốt khi solve problems một mình.</li>
+          <li><strong>Tolerance với áp lực kỹ thuật</strong> — Khi gặp khủng hoảng (Day 3 — server sập), con đã không bỏ cuộc và tìm ra giải pháp.</li>
+        </ul>
+      </div>
+
+      <div class="letter-section">
+        <div class="letter-heading">2 điểm cần hỗ trợ</div>
+        <p class="letter-body" style="margin-bottom: 16px;"><strong>1. Communication skills (8/10):</strong> Trong các tình huống team meeting, con có xu hướng nói ít. Để thăng tiến lên Senior level (5+ năm), con cần rèn presentation và networking.</p>
+        <p style="font-size: 13px; color: var(--ink-600); margin-left: 16px;">Cách hỗ trợ: Khuyến khích con thuyết trình ở trường, tham gia debate clubs hoặc Toastmasters.</p>
+
+        <p class="letter-body" style="margin-top: 16px; margin-bottom: 16px;"><strong>2. Khả năng chịu đựng các môn đại cương:</strong> 2 năm đầu của ngành SE rất nặng về Toán, Triết. Con có nguy cơ chán nản (40% chance bỏ học).</p>
+        <p style="font-size: 13px; color: var(--ink-600); margin-left: 16px;">Cách hỗ trợ: Giúp con tìm ý nghĩa của môn đại cương, khuyến khích internship sớm.</p>
+      </div>
+
+      <div class="letter-section">
+        <div class="letter-heading">ROI Prediction</div>
+        <ul class="letter-list">
+          <li>Tỷ lệ hài lòng nghề nghiệp dự đoán: <strong>82%</strong></li>
+          <li>Khả năng có việc sau ra trường: <strong>95%</strong></li>
+          <li>Mức thu nhập kỳ vọng (5 năm): <strong>35-50 triệu/tháng</strong></li>
+        </ul>
+      </div>
+
+      <div class="letter-section">
+        <div class="letter-heading">Lời khuyên cụ thể</div>
+        <p class="letter-body" style="margin-bottom: 12px;">Quý vị có thể yên tâm đầu tư cho con học ngành này, với 3 lưu ý:</p>
+        <ul class="letter-list">
+          <li>Hỗ trợ con vượt qua 2 năm đại cương khó khăn</li>
+          <li>Khuyến khích phát triển communication skills</li>
+          <li>Đừng kỳ vọng con sẽ làm "manager" — con phù hợp với individual contributor track</li>
+        </ul>
+      </div>
+
+      <div class="letter-signature">
+        Trân trọng,<br>
+        <strong>Hội đồng Phân tích AI của LUMINA</strong>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom Actions -->
+  <div class="bottom-actions">
+    <div class="actions-text">Hành động tiếp theo của bạn?</div>
+    <div class="actions-buttons">
+      <button class="btn btn-on-dark">⤓ Download PDF</button>
+      <button class="btn btn-on-dark">⤴ Share with Parent</button>
+      <button class="btn btn-on-dark" onclick="window.location.href='11-portfolio.html'">💾 Save to Portfolio</button>
+      <button class="btn btn-cta-dark">🎯 Try Another Major · 25% off</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="../shared/navigation.js"></script>
+<script>
+  document.getElementById('header').innerHTML = buildHeader({
+    breadcrumb: ['Home', 'Portfolio', 'Final Report · SE'],
+    rightActions: ['notification', 'avatar']
+  });
+</script>
+
+</body>
+</html>
