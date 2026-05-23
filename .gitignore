@@ -18,9 +18,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Environment
+# Environment — never commit secrets, but commit the example template
 .env
 .env.*
+!.env.example
 
 # Build output
 dist/
@@ -33,3 +34,11 @@ out/
 .cache/
 .turbo/
 .vercel/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Testing
+playwright-report/
+test-results/
