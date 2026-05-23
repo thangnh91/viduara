@@ -8,7 +8,7 @@ LUMINA is a career pre-experience EdTech platform for Vietnamese high school stu
 
 **Current Phase:** V0 (MVP for design competition + small beta of 50 users)
 **Timeline:** 5 weeks
-**Stack:** Next.js 15 + TypeScript strict + Postgres (Neon) + Anthropic Claude API + Vercel
+**Stack:** pnpm monorepo — Next.js 16 (web) + Hono/Node.js (api) + TypeScript strict + Postgres (Neon) + Anthropic Claude API
 
 ## Critical Documents (Read These Before Coding)
 
@@ -34,27 +34,35 @@ Strict 4-layer architecture: Presentation → Application → Domain → Infrast
 - **Domain** (business logic): Pure logic. NEVER imports from Infrastructure directly. Uses interfaces.
 - **Infrastructure** (DB, AI, email adapters): Implements interfaces defined in Domain. Knows about external systems.
 
-**Folder structure must reflect this:**
+**Monorepo structure:**
 
 ```
-src/
-  presentation/     ← UI components, pages
-  application/      ← API routes, use cases, workflows
-  domain/           ← Business logic, entities, interfaces
-    scenario/
-    persona/
-    session/
-    knowledge/
-    widget/
-    final-report/
-    identity/
-    tenancy/
-  infrastructure/   ← Adapters: AI provider, DB, email, etc.
-    ai/
-    database/
-    email/
-    cache/
+apps/
+  web/src/
+    presentation/     ← UI components, pages (Next.js App Router)
+    application/      ← Client-side use cases, API client wrappers
+  api/src/
+    application/      ← Hono route handlers, use case orchestration
+    domain/           ← Business logic, entities, interfaces
+      scenario/
+      persona/
+      session/
+      knowledge/
+      widget/
+      final-report/
+      identity/
+      tenancy/
+    infrastructure/   ← Adapters: AI provider, DB, email, etc.
+      ai/
+      database/
+      email/
+      cache/
+packages/
+  types/              ← Shared TypeScript types (FE + BE)
+  config/             ← Shared tsconfig, eslint configs
 ```
+
+Layer boundaries still apply within each app. `apps/web` never imports from `apps/api` directly — it calls the HTTP API.
 
 ### 2. AI Calls MUST Go Through Provider Gateway
 
@@ -75,7 +83,7 @@ const response = await aiGateway.complete({
 });
 ```
 
-The gateway exists in `src/infrastructure/ai/gateway.ts`. If it doesn't exist yet, create it before writing any AI feature.
+The gateway exists in `apps/api/src/infrastructure/ai/gateway.ts`. If it doesn't exist yet, create it before writing any AI feature.
 
 **Reason:** TAD ADR-006 mandates multi-provider abstraction from V0. Direct SDK calls make V1 (adding OpenAI fallback) painful.
 
@@ -135,7 +143,7 @@ try {
 }
 ```
 
-Custom error classes in `src/domain/errors/`. Use them.
+Custom error classes in `apps/api/src/domain/errors/`. Use them.
 
 ### 7. Server-Side Permission Checks
 
@@ -154,7 +162,7 @@ export async function POST(req: Request) {
 
 ### 8. No Secrets in Code
 
-Never commit API keys, passwords, or tokens. Always use `process.env.X` with validation in `src/config/env.ts`.
+Never commit API keys, passwords, or tokens. Always use `process.env.X` with validation in `apps/api/src/config/env.ts`.
 
 If you find a secret accidentally committed, **STOP, alert the human, rotate the secret, history-rewrite the commit.**
 
@@ -211,9 +219,23 @@ All must pass. If any fail, fix before opening PR.
 
 ## Common Gotchas
 
+### Monorepo — chạy lệnh đúng chỗ
+
+- `pnpm dev` ở root khởi động cả hai apps song song
+- `pnpm --filter @lumina/api <script>` để chạy lệnh chỉ ở backend
+- `pnpm --filter @lumina/web <script>` để chạy lệnh chỉ ở frontend
+- Thêm package mới: `pnpm --filter @lumina/api add <pkg>` (không dùng `npm install`)
+
+### Env vars
+
+- `.env` đặt ở **root monorepo** (không phải trong `apps/api/`)
+- `apps/api/src/config/env.ts` validate bằng Zod — nếu thiếu biến, server crash ngay khi start
+- Không cần `.env` cho `apps/web` ở local (FE chỉ cần `NEXT_PUBLIC_*` vars, chưa có trong V0)
+
 ### Anthropic Streaming
-- Use Vercel AI SDK's `streamText`, not raw SDK streaming
-- Streams must complete before saving messages to DB (use `onFinish` callback)
+
+- Streaming đi qua `aiGateway.stream()` — KHÔNG gọi SDK trực tiếp
+- Streams phải hoàn thành trước khi save messages vào DB
 
 ### Drizzle Migrations
 - Schema changes require new migration via `pnpm db:generate`

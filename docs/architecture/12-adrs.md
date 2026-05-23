@@ -8,7 +8,7 @@ This section presents foundational ADRs that shape the architecture defined in e
 
 ## ADR-001: Modular Monolith over Microservices
 
-**Status:** Accepted
+**Status:** Accepted (amended by ADR-011)
 
 ### Context
 
@@ -24,6 +24,10 @@ Build LUMINA as a modular monolith — a single deployable application with stri
 - **Positive:** strong modularity preserved at code level enables future extraction of services where justified.
 - **Negative:** scaling individual components requires scaling the whole monolith; mitigated by component extraction when justified.
 - **Negative:** requires team discipline to maintain module boundaries; mitigated by code review and architecture fitness functions.
+
+### Amendment (V0 Sprint — see ADR-011)
+
+In V0, we chose a pnpm monorepo with separate `apps/web` (Next.js) and `apps/api` (Hono) rather than a single Next.js full-stack application. This is still a modular monolith at the domain layer — domain logic lives in `apps/api`, not split across services. The FE/BE separation is a deployment boundary, not a microservices split. ADR-001's intent (no distributed transactions, no service mesh, single team owns all code) is preserved.
 
 ---
 
@@ -79,24 +83,33 @@ Use Postgres as the primary data store for relational, transactional, document (
 
 ---
 
-## ADR-004: Next.js as Application Framework
+## ADR-004: Next.js as Frontend Framework
 
-**Status:** Accepted
+**Status:** Amended (superseded in part by ADR-011)
 
 ### Context
 
-LUMINA needs a full-stack web framework supporting server-side rendering (for SEO and performance), server components (for AI-heavy pages), API routes (for backend logic), and easy deployment.
+LUMINA needs a web framework supporting server-side rendering (for SEO and performance), server components (for AI-heavy pages), and easy deployment.
 
-### Decision
+### Original Decision
 
-Build the web application using Next.js (App Router) with React. Single project containing user-facing apps and admin tools, with route-based separation.
+Build the web application using Next.js (App Router) with React as a full-stack framework including API routes.
 
-### Consequences
+### Amendment (V0 Sprint)
 
-- **Positive:** integrated full-stack experience reduces context switching for small team.
-- **Positive:** Vercel deployment is one-click; managed infrastructure free tier sufficient for initial scale.
-- **Negative:** Next.js framework opinionation; mitigated by following framework conventions rather than fighting them.
-- **Negative:** hosted on Vercel, future migration to alternative hosting requires effort; mitigated by avoiding Vercel-specific features beyond standard Next.js.
+Next.js is used for the **frontend only** (`apps/web`). API routes are not used. Backend logic lives in a separate Hono + Node.js application (`apps/api`). See ADR-011 for rationale.
+
+Next.js is still responsible for:
+
+- All user-facing UI (App Router, RSC, Tailwind)
+- Static asset serving
+- Vercel deployment for the frontend
+
+### Amended Consequences
+
+- **Positive:** Next.js remains best-in-class for the frontend use case (SSR, RSC, Vercel integration).
+- **Positive:** Backend is now independently deployable and not constrained by Vercel's Edge/Serverless runtime.
+- **Negative:** Two deployment targets (Vercel for web, Railway/Render for api); mitigated by pnpm monorepo keeping code co-located.
 
 ---
 
@@ -217,6 +230,47 @@ All published content is immutable. Editing produces a new version. Sessions ref
 - **Positive:** session integrity guaranteed across the 7-day arc.
 - **Positive:** audit trail of content changes; ability to compare versions.
 - **Negative:** storage cost grows with version count; mitigated by archival policies after content is unused for extended periods.
+
+---
+
+## ADR-011: pnpm Monorepo with Separate Frontend and Backend Apps
+
+**Status:** Accepted
+
+### Context
+
+The original architecture assumed a Next.js full-stack monolith (TAD ADR-004). During V0 sprint setup, the team decided to separate frontend and backend concerns to avoid coupling them to the same framework and deployment target.
+
+Specific concerns with the full-stack Next.js approach:
+
+- Backend AI streaming logic is poorly served by Vercel Edge/Serverless runtimes (cold starts, execution time limits).
+- Next.js API routes mix frontend and backend concerns in the same project, making layer boundaries harder to enforce.
+- A future mobile app would need to call the same API — a dedicated API server is the natural fit.
+
+### Decision
+
+Structure the codebase as a **pnpm monorepo** with:
+
+- `apps/web` — Next.js 16 (App Router), frontend only, deployed to Vercel
+- `apps/api` — Hono + Node.js, all backend/API logic, deployed to Railway or Render
+- `packages/types` — shared TypeScript types consumed by both apps
+- `packages/config` — shared tsconfig and eslint configs
+
+### Rationale
+
+- **Separation of deployment targets:** backend runs as a long-lived Node.js process on Railway; frontend deploys to Vercel CDN. Each is independently scalable.
+- **Framework freedom:** `apps/api` is not constrained by Next.js conventions or Vercel's runtime limits. Hono is lightweight and TypeScript-first.
+- **Mobile readiness:** `apps/api` is an HTTP API from day one. A future `apps/mobile` (React Native) calls the same endpoints without any backend changes.
+- **Monorepo cohesion:** despite separate apps, all code lives in one repository. Shared types prevent drift between FE and BE. One `pnpm install`, one CI pipeline.
+- **Migration path to microservices:** domain logic in `apps/api/src/domain/` is framework-agnostic. If a bounded context needs to be extracted as a microservice in V2+, it is a deployment concern, not a rewrite.
+
+### Consequences
+
+- **Positive:** Backend can use long-running Node.js processes; AI streaming is not constrained by Vercel's 60s function timeout.
+- **Positive:** Clear API contract boundary; frontend is a pure consumer of the HTTP API.
+- **Positive:** Future mobile app (`apps/mobile`) can reuse `packages/types` and call the same `apps/api` endpoints.
+- **Negative:** Two deployment targets to manage (Vercel + Railway); mitigated by having both under one repo and one CI workflow.
+- **Negative:** Local dev requires starting two servers; mitigated by `pnpm dev` at root running both in parallel.
 
 ---
 
